@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "web-request": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.1",
+    "@types/nock": "^9.3.0",
+    "jest": "^23.4.2",
+    "nock": "^9.4.4",
+    "ts-jest": "^23.0.1",
+    "typescript": "^3.0.1"
+  },
+  "scripts": {
+    "build": "node_modules/.bin/tsc src/App.ts --outDir lib/js",
+    "pretest": "node_modules/.bin/tsc test/*Test.ts --outDir lib --lib es6 --module commonjs",
+    "test": "node_modules/.bin/jest"
+  }
+}
