@@ -11,7 +11,7 @@
     "typescript": "^3.0.1"
   },
   "scripts": {
-    "build": "node_modules/.bin/tsc src/App.ts --outDir lib/js",
+    "build": "node_modules/.bin/tsc src/Handler.ts --outDir lib/js",
     "pretest": "node_modules/.bin/tsc test/*Test.ts --outDir lib --lib es6 --module commonjs",
     "test": "node_modules/.bin/jest"
   }
