@@ -1,12 +1,12 @@
-import { AlexaRequest, AlexaResponse, AlexaContext } from '../models/Alexa';
-import { ILinnApiDevicesProxy } from '../proxies/ILinnApiDevicesProxy';
+import { AlexaRequest, AlexaResponse, AlexaContext, DiscoveryPayload } from '../models/Alexa';
+import ILinnApiDevicesProxy from '../proxies/ILinnApiDevicesProxy';
 
 class DiscoveryHandler {
     constructor(private deviceProxy : ILinnApiDevicesProxy) {
     }
-    async handle(request: AlexaRequest, context: AlexaContext) : Promise<void> {
+    async handle(request: AlexaRequest, context: AlexaContext) {
         let endpoints = await this.deviceProxy.list(request.directive.payload.scope.token);
-        context.succeed({
+        let response : AlexaResponse<DiscoveryPayload> = {
             event: {
                 header: {
                     name: "Discover.Response",
@@ -19,8 +19,9 @@ class DiscoveryHandler {
                     endpoints: endpoints
                 }
             }
-        });
+        };
+        context.succeed(response);
     }
 }
 
-export { DiscoveryHandler };
+export default DiscoveryHandler;

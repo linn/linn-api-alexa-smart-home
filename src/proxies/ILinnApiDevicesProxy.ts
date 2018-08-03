@@ -1,7 +1,7 @@
-import { IEndpoint } from '../models/IEndpoint';
+import { IEndpoint } from '../models/Alexa';
 
 interface ILinnApiDevicesProxy {
     list(token : string) : Promise<IEndpoint[]>
 }
 
-export { ILinnApiDevicesProxy };
+export default ILinnApiDevicesProxy;

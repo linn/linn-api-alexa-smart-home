@@ -1,6 +1,6 @@
-import { DiscoveryHandler } from './handlers/DiscoveryHandler';
+import DiscoveryHandler from './handlers/DiscoveryHandler';
 import { AlexaRequest, AlexaContext } from './models/Alexa';
-import { LinnApiDevicesProxy } from './proxies/LinnApiDevicesProxy';
+import LinnApiDevicesProxy from './proxies/LinnApiDevicesProxy';
 
 function handler(request: AlexaRequest, context: AlexaContext) {
     if (request.directive.header.namespace == "Alexa.Discovery" && request.directive.header.name === 'Discover') {

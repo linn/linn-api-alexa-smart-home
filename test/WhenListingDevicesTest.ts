@@ -1,6 +1,6 @@
-import { LinnApiDevicesProxy } from '../src/proxies/LinnApiDevicesProxy';
-import { ILinnApiDevicesProxy } from '../src/proxies/ILinnApiDevicesProxy';
-import { IEndpoint } from '../src/models/IEndpoint';
+import LinnApiDevicesProxy from '../src/proxies/LinnApiDevicesProxy';
+import ILinnApiDevicesProxy from '../src/proxies/ILinnApiDevicesProxy';
+import { IEndpoint } from '../src/models/Alexa';
 import * as nock from 'nock';
 
 describe('LinnApiDevicesProxy', () => {
@@ -38,27 +38,12 @@ describe('LinnApiDevicesProxy', () => {
             expect(deviceApi.isDone()).toBeTruthy();
         });
 
-        test('Should provide one result', () => {
+        test('Should provide expected endpoint', () => {
             expect(endpoints).toHaveLength(1);
-        });
-
-        test('Should set id', () => {
-           expect(endpoints[0].endpointId).toBe("device0"); 
-        });
-
-        test('Should set model', () => {
-           expect(endpoints[0].manufacturerName).toBe("Linn Products Ltd."); 
-        });
-
-        test('Should set model', () => {
-           expect(endpoints[0].friendlyName).toBe("Morning Room"); 
-        });
-
-        test('Should set description', () => {
-           expect(endpoints[0].description).toBe("Akurate DSM"); 
-        });
-
-        test('Result should have 5 capabilities', () => {
+            expect(endpoints[0].endpointId).toBe("device0");
+            expect(endpoints[0].manufacturerName).toBe("Linn Products Ltd.");
+            expect(endpoints[0].friendlyName).toBe("Morning Room");
+            expect(endpoints[0].description).toBe("Akurate DSM");
             expect(endpoints[0].capabilities).toHaveLength(5);
             let interfaces = endpoints[0].capabilities.map(c => c.interface);
             expect(interfaces).toContain("Alexa");

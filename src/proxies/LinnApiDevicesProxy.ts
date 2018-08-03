@@ -1,7 +1,20 @@
-import { ILinnApiDevicesProxy } from "./ILinnApiDevicesProxy";
-import { SpeakerEndpoint, IEndpoint } from "../models/IEndpoint";
+import ILinnApiDevicesProxy from "./ILinnApiDevicesProxy";
+import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
 import * as WebRequest from 'web-request';
-import { AssociatedDevice } from "../models/AssociatedDevice";
+
+interface AssociatedDevice {
+    id: string;
+    serialNumber: string;
+    category: string;
+    model: string;
+    name: string;
+    links: LinkResource[];
+}
+
+interface LinkResource {
+    rel: string;
+    href: string;
+}
 
 class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
     constructor(private apiRoot : string) {
@@ -17,8 +30,8 @@ class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
 
         let devices = await WebRequest.json<AssociatedDevice[]>(`${this.apiRoot}/devices/`, options);
         
-        return devices.map(d => new SpeakerEndpoint(d.id, d.name, d.model));
+        return devices.map((d : AssociatedDevice) => new SpeakerEndpoint(d.id, d.name, d.model));
     }
 }
 
-export { LinnApiDevicesProxy }
+export default LinnApiDevicesProxy
