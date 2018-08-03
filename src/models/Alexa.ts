@@ -1,4 +1,4 @@
-interface AlexaContext {
+interface IAlexaContext {
     succeed(result?: AlexaResponse<Payload>): void;
     fail(error?: Error): void;
     done(error?: Error, result?: Object): void; // result must be JSON.stringifyable
@@ -13,32 +13,40 @@ interface RequestDirectiveHeader {
     payloadVersion: string;
 }
 
-interface PayloadScope {
+interface Scope {
     type: string;
     token: string;
 }
 
-interface RequestDirectivePayload {
-    scope: PayloadScope;
+interface RequestDirectiveEndpoint {
+    scope: Scope;
+    endpointId: string;
+    cookie?: any;
 }
 
-interface RequestDirective {
+interface RequestDirective<T> {
     header: RequestDirectiveHeader;
-    payload: RequestDirectivePayload;
+    payload: T;
+    endpoint?: RequestDirectiveEndpoint;
 }
 
-interface AlexaRequest {
-    directive: RequestDirective;
+interface AlexaRequest<T> {
+    directive: RequestDirective<T>;
 }
 
 interface Payload {}
 
-interface DiscoveryPayload extends Payload {
+interface DiscoveryRequestPayload extends Payload {
+    scope: Scope
+}
+
+interface DiscoveryResponsePayload extends Payload {
     endpoints: IEndpoint[]
 }
 
 interface AlexaEvent<T> {
     header: RequestDirectiveHeader,
+    endpoint?: RequestDirectiveEndpoint,
     payload: T
 }
 
@@ -108,4 +116,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { IEndpoint, SpeakerEndpoint, AlexaContext, AlexaRequest, AlexaResponse, DiscoveryPayload }
+export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload }

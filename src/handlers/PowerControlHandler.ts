@@ -1,27 +1,27 @@
 import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
 import ILinnApiDevicesProxy from '../proxies/ILinnApiDevicesProxy';
 
-class DiscoveryHandler {
+class PowerControlHandler {
     constructor(private deviceProxy : ILinnApiDevicesProxy) {
     }
-    async handle(request: AlexaRequest<DiscoveryRequestPayload>, context: IAlexaContext) {
-        let endpoints = await this.deviceProxy.list(request.directive.payload.scope.token);
-        let response : AlexaResponse<DiscoveryResponsePayload> = {
+    async handle(request: AlexaRequest<any>, context: IAlexaContext) {
+        let shouldBeInStandby = request.directive.header.name === "TurnOff";
+        await this.deviceProxy.setStandby(request.directive.endpoint.endpointId, shouldBeInStandby, request.directive.endpoint.scope.token);
+        let response : AlexaResponse<any> = {
             event: {
                 header: {
-                    name: "Discover.Response",
-                    namespace: "Alexa.Discovery",
+                    name: "Response",
+                    namespace: "Alexa",
                     correlationToken: request.directive.header.correlationToken,
                     messageId: request.directive.header.messageId + "-R",
                     payloadVersion: "3"
                 },
-                payload: {
-                    endpoints: endpoints
-                }
+                endpoint: request.directive.endpoint,
+                payload: {}
             }
         };
         context.succeed(response);
     }
 }
 
-export default DiscoveryHandler;
+export default PowerControlHandler;

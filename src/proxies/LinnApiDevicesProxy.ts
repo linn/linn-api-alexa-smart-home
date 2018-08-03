@@ -32,6 +32,9 @@ class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
         
         return devices.map((d : AssociatedDevice) => new SpeakerEndpoint(d.id, d.name, d.model));
     }
+    async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
+        
+    }
 }
 
 export default LinnApiDevicesProxy
