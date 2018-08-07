@@ -1,4 +1,4 @@
-import ILinnApiDevicesProxy from "./ILinnApiDevicesProxy";
+import ILinnApiFacade from "./ILinnApiFacade";
 import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
 import * as webRequest from 'web-request';
 
@@ -16,7 +16,7 @@ interface LinkResource {
     href: string;
 }
 
-class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
+class LinnApiFacade implements ILinnApiFacade {
     constructor(private apiRoot : string) {
     }
 
@@ -42,6 +42,14 @@ class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
             await webRequest.delete(`${this.apiRoot}/devices/${deviceId}/standby`, this.headers(token));
         }
     }
+
+    async play(deviceId : string, token : string) : Promise<void> {
+        await webRequest.put(`${this.apiRoot}/players/${deviceId}/play`, this.headers(token));
+    }
+
+    async pause(deviceId : string, token : string) : Promise<void> {
+        await webRequest.put(`${this.apiRoot}/players/${deviceId}/pause`, this.headers(token));
+    }
 }
 
-export default LinnApiDevicesProxy
+export default LinnApiFacade

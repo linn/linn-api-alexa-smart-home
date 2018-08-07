@@ -57,7 +57,8 @@ interface AlexaResponse<T> {
 interface IAlexaCapability {
     interface: string,
     version: string,
-    type: string
+    type: string,
+    supportedOperations?: string[]
 }
 
 class AlexaCapability implements IAlexaCapability {
@@ -88,6 +89,7 @@ class AlexaPlaybackController implements IAlexaCapability {
     interface = "Alexa.PlaybackController";
     type = "AlexaInterface";
     version = "3";
+    supportedOperations = [ "Play", "Pause", "Stop", "StartOver", "Previous", "Next", "Rewind", "FastForward" ];
 }
 
 interface IEndpoint {

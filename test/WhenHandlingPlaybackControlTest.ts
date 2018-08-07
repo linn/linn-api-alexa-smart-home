@@ -1,45 +1,46 @@
-import PowerControlHandler from '../src/handlers/PowerControlHandler';
+import PlaybackControlHandler from '../src/handlers/PlaybackControlHandler';
 import { AlexaRequest, AlexaResponse, IAlexaContext } from '../src/models/Alexa';
 import ILinnApiFacade from '../src/facade/ILinnApiFacade';
 
-describe('PowerControlHandler', () => {
+describe('PlaybackControlHandler', () => {
     let alexaRequest : AlexaRequest<any>;
     let alexaResponse : AlexaResponse<any>;
     let requestedDeviceId : string;
-    let requestedStandbyState : boolean;
+    let actionCalled : string;
     let requestedToken : string;
     let fakeFacade : ILinnApiFacade = {
         list: async (token : string) => { return null; },
-        setStandby: async (deviceId : string, value : boolean, token : string) => { requestedDeviceId = deviceId, requestedStandbyState = value, requestedToken = token },
-        play: async (deviceId : string, token : string) => { return null; },
-        pause: async (deviceId : string, token : string) => { return null; }
+        setStandby: async (deviceId : string, value : boolean, token : string) => { return null; },
+        play: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "play", requestedToken = token },
+        pause: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "pause", requestedToken = token }
     }
 
     let testContext : IAlexaContext;
-    let sut = new PowerControlHandler(fakeFacade);
+    let sut = new PlaybackControlHandler(fakeFacade);
 
-    describe('#TurnOff', () => {     
+    describe('#Play', () => {     
         beforeEach((callback) => {
             alexaRequest = {
                 "directive": {
-                    "header": {
-                        "namespace": "Alexa.PowerController",
-                        "name": "TurnOff",
-                        "payloadVersion": "3",
-                        "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
-                        "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
+                  "header": {
+                    "namespace": "Alexa.PlaybackController",
+                    "name": "Play",
+                    "messageId": "abc-123-def-456",
+                    "payloadVersion": "3"
+                  },
+                  "endpoint": {
+                    "scope": {
+                      "type": "BearerToken",
+                      "token": "access-token-from-skill"
                     },
-                    "endpoint": {
-                        "scope": {
-                        "type": "BearerToken",
-                        "token": "access-token-from-skill"
-                        },
-                        "endpointId": "appliance-001",
-                        "cookie": {}
-                    },
-                    "payload": {}
+                    "endpointId": "device-001",
+                    "cookie": {         
+                    }
+                  },
+                  "payload": {
+                  }
                 }
-            };
+              };
             testContext = {
                 succeed: (result : AlexaResponse<any>) => {
                     alexaResponse = result;
@@ -54,7 +55,7 @@ describe('PowerControlHandler', () => {
 
         test('Should invoke facade', () => {
             expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedStandbyState).toBe(true);
+            expect(actionCalled).toBe("play");
             expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
         });
 
@@ -70,28 +71,29 @@ describe('PowerControlHandler', () => {
         });
     });
 
-    describe('#TurnOn', () => {     
+    describe('#Pause', () => {     
         beforeEach((callback) => {
             alexaRequest = {
                 "directive": {
-                    "header": {
-                        "namespace": "Alexa.PowerController",
-                        "name": "TurnOn",
-                        "payloadVersion": "3",
-                        "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
-                        "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
+                  "header": {
+                    "namespace": "Alexa.PlaybackController",
+                    "name": "Pause",
+                    "messageId": "abc-123-def-456",
+                    "payloadVersion": "3"
+                  },
+                  "endpoint": {
+                    "scope": {
+                      "type": "BearerToken",
+                      "token": "access-token-from-skill"
                     },
-                    "endpoint": {
-                        "scope": {
-                        "type": "BearerToken",
-                        "token": "access-token-from-skill"
-                        },
-                        "endpointId": "appliance-001",
-                        "cookie": {}
-                    },
-                    "payload": {}
+                    "endpointId": "device-001",
+                    "cookie": {
+              
+                    }
+                  },
+                  "payload": {}
                 }
-            };
+              };
             testContext = {
                 succeed: (result : AlexaResponse<any>) => {
                     alexaResponse = result;
@@ -106,7 +108,7 @@ describe('PowerControlHandler', () => {
 
         test('Should invoke facade', () => {
             expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedStandbyState).toBe(false);
+            expect(actionCalled).toBe("pause");
             expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
         });
 

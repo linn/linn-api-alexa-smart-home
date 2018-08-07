@@ -1,18 +1,23 @@
 import DiscoveryHandler from './handlers/DiscoveryHandler';
 import PowerControlHandler from './handlers/PowerControlHandler';
 import { AlexaRequest, IAlexaContext, DiscoveryRequestPayload } from './models/Alexa';
-import LinnApiDevicesProxy from './proxies/LinnApiDevicesProxy';
+import LinnApiFacade from './facade/LinnApiFacade';
+import PlaybackControlHandler from './handlers/PlaybackControlHandler';
 
 function handler(request: AlexaRequest<any>, context: IAlexaContext) {
-    let proxy = new LinnApiDevicesProxy("https://api.linn.co.uk");
+    let facade = new LinnApiFacade("https://api.linn.co.uk");
 
     if (request.directive.header.namespace === "Alexa.Discovery" && request.directive.header.name === 'Discover') {
         log("Debug", "Discover request",  request);
-        let handler = new DiscoveryHandler(proxy);
+        let handler = new DiscoveryHandler(facade);
         handler.handle(request, context);
     } else if (request.directive.header.namespace === "Alexa.PowerController") {
         log("Debug", "PowerController request",  request);
-        let handler = new PowerControlHandler(proxy);
+        let handler = new PowerControlHandler(facade);
+        handler.handle(request, context);
+    } else if (request.directive.header.namespace === "Alexa.PlaybackController") {
+        log("Debug", "PlaybackController request",  request);
+        let handler = new PlaybackControlHandler(facade);
         handler.handle(request, context);
     }
 }

@@ -1,11 +1,11 @@
 import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
-import ILinnApiDevicesProxy from '../proxies/ILinnApiDevicesProxy';
+import ILinnApiDevicesFacade from '../facade/ILinnApiFacade';
 
 class DiscoveryHandler {
-    constructor(private deviceProxy : ILinnApiDevicesProxy) {
+    constructor(private apiFacade : ILinnApiDevicesFacade) {
     }
     async handle(request: AlexaRequest<DiscoveryRequestPayload>, context: IAlexaContext) {
-        let endpoints = await this.deviceProxy.list(request.directive.payload.scope.token);
+        let endpoints = await this.apiFacade.list(request.directive.payload.scope.token);
         let response : AlexaResponse<DiscoveryResponsePayload> = {
             event: {
                 header: {
