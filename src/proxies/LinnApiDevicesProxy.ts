@@ -1,6 +1,6 @@
 import ILinnApiDevicesProxy from "./ILinnApiDevicesProxy";
 import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
-import * as WebRequest from 'web-request';
+import * as webRequest from 'web-request';
 
 interface AssociatedDevice {
     id: string;
@@ -20,7 +20,6 @@ class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
     constructor(private apiRoot : string) {
     }
     async list(token : string): Promise<IEndpoint[]> {
-
         let options = {
             headers: {
                 'Accept': 'application/json',
@@ -28,12 +27,11 @@ class LinnApiDevicesProxy implements ILinnApiDevicesProxy {
             }
         };
 
-        let devices = await WebRequest.json<AssociatedDevice[]>(`${this.apiRoot}/devices/`, options);
+        let devices = await webRequest.json<AssociatedDevice[]>(`${this.apiRoot}/devices/`, options);
         
-        return devices.map((d : AssociatedDevice) => new SpeakerEndpoint(d.id, d.name, d.model));
+        return devices.map(d => new SpeakerEndpoint(d.id, d.name, d.model));
     }
     async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
-        
     }
 }
 

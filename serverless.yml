@@ -1,0 +1,21 @@
+service: linn-api-alexa-smart-home
+
+provider:
+  name: aws
+  stage: production
+  region: eu-west-1
+
+package:
+  include:
+  - node_modules
+  - lib/js/**
+
+functions:
+  alexaSmartHome:
+    handler: lib/js/Handler.handler
+    description: Alexa Smart Home Skill Backend
+    runtime: nodejs8.10
+    events:
+    - alexaSmartHome:
+        appId: amzn1.ask.skill.e94eecfe-71a0-43f1-9785-ed517f984f02
+        enabled: true

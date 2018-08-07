@@ -35,3 +35,4 @@ launchSettings.json
 *.jsx.map
 __pycache__
 api/index.html
+,serverless
