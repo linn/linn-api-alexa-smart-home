@@ -16,6 +16,8 @@ describe('PlaybackControlHandler', () => {
         stop: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "stop", requestedToken = token },
         next: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "next", requestedToken = token },
         prev: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "prev", requestedToken = token },
+        setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
+        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; }
     }
 
     let sut = new PlaybackControlHandler(fakeFacade);
@@ -42,22 +44,10 @@ describe('PlaybackControlHandler', () => {
         };
     }
 
-    function generateContext(callback) : IAlexaContext {
-        return {
-            succeed: (result : AlexaResponse<any>) => {
-                alexaResponse = result;
-                callback();
-            },
-            fail: (error?: Error) => callback(error),
-            done: (error?: Error, result?: Object) => callback(error, result),
-            getRemainingTimeInMillis: () => 1000
-        };
-    }
-
     describe('#Play', () => {
-        beforeEach((callback) => {
+        beforeEach(async () => {
             alexaRequest = generateRequest("Play");
-            sut.handle(alexaRequest, generateContext(callback));
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
@@ -79,9 +69,9 @@ describe('PlaybackControlHandler', () => {
     });
 
     describe('#Pause', () => {
-        beforeEach((callback) => {
+        beforeEach(async () => {
             alexaRequest = generateRequest("Pause");
-            sut.handle(alexaRequest, generateContext(callback));
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
@@ -103,9 +93,9 @@ describe('PlaybackControlHandler', () => {
     });
 
     describe('#Stop', () => {
-        beforeEach((callback) => {
+        beforeEach(async () => {
             alexaRequest = generateRequest("Stop");
-            sut.handle(alexaRequest, generateContext(callback));
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
@@ -127,9 +117,9 @@ describe('PlaybackControlHandler', () => {
     });
 
     describe('#Next', () => {     
-        beforeEach((callback) => {
+        beforeEach(async () => {
             alexaRequest = generateRequest("Next");
-            sut.handle(alexaRequest, generateContext(callback));
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
@@ -151,9 +141,9 @@ describe('PlaybackControlHandler', () => {
     });
 
     describe('#Previous', () => {     
-        beforeEach((callback) => {
+        beforeEach(async () => {
             alexaRequest = generateRequest("Previous");
-            sut.handle(alexaRequest, generateContext(callback));
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {

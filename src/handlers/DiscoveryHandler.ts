@@ -1,13 +1,14 @@
 import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
 import ILinnApiDevicesFacade from '../facade/ILinnApiFacade';
+import IAlexaHandler from './IAlexaHandler';
 
-class DiscoveryHandler {
+class DiscoveryHandler implements IAlexaHandler<DiscoveryRequestPayload, DiscoveryResponsePayload> {
     constructor(private apiFacade : ILinnApiDevicesFacade) {
     }
-    async handle(request: AlexaRequest<DiscoveryRequestPayload>, context: IAlexaContext) {
+    async handle(request: AlexaRequest<DiscoveryRequestPayload>) : Promise<AlexaResponse<DiscoveryResponsePayload>> {
         if (request.directive.header.name === 'Discover') {
             let endpoints = await this.apiFacade.list(request.directive.payload.scope.token);
-            let response : AlexaResponse<DiscoveryResponsePayload> = {
+            return {
                 event: {
                     header: {
                         name: "Discover.Response",
@@ -21,8 +22,6 @@ class DiscoveryHandler {
                     }
                 }
             };
-            
-            context.succeed(response);
         }
     }
 }

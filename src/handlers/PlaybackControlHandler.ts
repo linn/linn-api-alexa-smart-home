@@ -1,10 +1,11 @@
 import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
 import ILinnApiFacade from '../facade/ILinnApiFacade';
+import IAlexaHandler from './IAlexaHandler';
 
-class PlaybackControlHandler {
+class PlaybackControlHandler implements IAlexaHandler<any, any> {
     constructor(private facade : ILinnApiFacade) {
     }
-    async handle(request: AlexaRequest<any>, context: IAlexaContext) {
+    async handle(request: AlexaRequest<any>) : Promise<AlexaResponse<any>> {
         switch(request.directive.header.name){
             case "Play":
                 await this.facade.play(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
@@ -23,7 +24,7 @@ class PlaybackControlHandler {
                 break;
         }
 
-        let response : AlexaResponse<any> = {
+        return {
             event: {
                 header: {
                     name: "Response",
@@ -36,8 +37,6 @@ class PlaybackControlHandler {
                 payload: {}
             }
         };
-
-        context.succeed(response);
     }
 }
 

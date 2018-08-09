@@ -8,6 +8,8 @@ interface ILinnApiFacade {
     stop(deviceId : string, token : string) : Promise<void>
     prev(deviceId : string, token : string) : Promise<void>
     next(deviceId : string, token : string) : Promise<void>
+    setMute(deviceId : string, value : boolean, token : string) : Promise<void>
+    adjustVolume(deviceId : string, steps : number, token : string) : Promise<void>
 }
 
 export default ILinnApiFacade;

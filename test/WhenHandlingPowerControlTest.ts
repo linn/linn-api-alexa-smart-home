@@ -15,44 +15,41 @@ describe('PowerControlHandler', () => {
         pause: async (deviceId : string, token : string) => { return null; },
         stop: async (deviceId : string, token : string) => { return null; },
         next: async (deviceId : string, token : string) => { return null; },
-        prev: async (deviceId : string, token : string) => { return null; }
+        prev: async (deviceId : string, token : string) => { return null; },
+        setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
+        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; }
     }
 
     let testContext : IAlexaContext;
     let sut = new PowerControlHandler(fakeFacade);
 
-    describe('#TurnOff', () => {     
-        beforeEach((callback) => {
-            alexaRequest = {
-                "directive": {
-                    "header": {
-                        "namespace": "Alexa.PowerController",
-                        "name": "TurnOff",
-                        "payloadVersion": "3",
-                        "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
-                        "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
-                    },
-                    "endpoint": {
-                        "scope": {
+    function generateRequest(command : string) : AlexaRequest<any> {
+        return {
+            "directive": {
+                "header": {
+                    "namespace": "Alexa.PowerController",
+                    "name": command,
+                    "payloadVersion": "3",
+                    "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
+                    "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
+                },
+                "endpoint": {
+                    "scope": {
                         "type": "BearerToken",
                         "token": "access-token-from-skill"
-                        },
-                        "endpointId": "appliance-001",
-                        "cookie": {}
                     },
-                    "payload": {}
-                }
-            };
-            testContext = {
-                succeed: (result : AlexaResponse<any>) => {
-                    alexaResponse = result;
-                    callback();
+                    "endpointId": "appliance-001",
+                    "cookie": {}
                 },
-                fail: (error?: Error) => callback(error),
-                done: (error?: Error, result?: Object) => callback(error, result),
-                getRemainingTimeInMillis: () => 1000
-            };
-            sut.handle(alexaRequest, testContext);
+                "payload": {}
+            }
+        };
+    }
+
+    describe('#TurnOff', () => {
+        beforeEach(async () => {
+            alexaRequest = generateRequest("TurnOff");
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
@@ -73,38 +70,10 @@ describe('PowerControlHandler', () => {
         });
     });
 
-    describe('#TurnOn', () => {     
-        beforeEach((callback) => {
-            alexaRequest = {
-                "directive": {
-                    "header": {
-                        "namespace": "Alexa.PowerController",
-                        "name": "TurnOn",
-                        "payloadVersion": "3",
-                        "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
-                        "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
-                    },
-                    "endpoint": {
-                        "scope": {
-                        "type": "BearerToken",
-                        "token": "access-token-from-skill"
-                        },
-                        "endpointId": "appliance-001",
-                        "cookie": {}
-                    },
-                    "payload": {}
-                }
-            };
-            testContext = {
-                succeed: (result : AlexaResponse<any>) => {
-                    alexaResponse = result;
-                    callback();
-                },
-                fail: (error?: Error) => callback(error),
-                done: (error?: Error, result?: Object) => callback(error, result),
-                getRemainingTimeInMillis: () => 1000
-            };
-            sut.handle(alexaRequest, testContext);
+    describe('#TurnOn', () => {
+        beforeEach(async () => {
+            alexaRequest = generateRequest("TurnOn");
+            alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {

@@ -62,6 +62,14 @@ class LinnApiFacade implements ILinnApiFacade {
     async prev(deviceId : string, token : string) : Promise<void> {
         await webRequest.post(`${this.apiRoot}/players/${deviceId}/prev`, this.headers(token));
     }
+
+    async setMute(deviceId : string, value : boolean, token : string) : Promise<void> {
+
+    }
+
+    async adjustVolume(deviceId : string, steps : number, token : string) : Promise<void> {
+        
+    }
 }
 
 export default LinnApiFacade
