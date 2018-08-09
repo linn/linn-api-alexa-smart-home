@@ -2,10 +2,10 @@ import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, D
 import ILinnApiFacade from '../facade/ILinnApiFacade';
 import IAlexaHandler from './IAlexaHandler';
 
-class PowerControlHandler implements IAlexaHandler<any, any> {
+class PowerControlHandler implements IAlexaHandler<{}, {}> {
     constructor(private facade : ILinnApiFacade) {
     }
-    async handle(request: AlexaRequest<any>) : Promise<AlexaResponse<any>> {
+    async handle(request: AlexaRequest<{}>) : Promise<AlexaResponse<{}>> {
         let shouldBeInStandby = request.directive.header.name === "TurnOff";
         await this.facade.setStandby(request.directive.endpoint.endpointId, shouldBeInStandby, request.directive.endpoint.scope.token);
         return {
