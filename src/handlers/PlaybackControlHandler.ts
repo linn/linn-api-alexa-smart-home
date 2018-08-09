@@ -1,10 +1,7 @@
 import { AlexaRequest, AlexaResponse } from '../models/Alexa';
-import ILinnApiFacade from '../facade/ILinnApiFacade';
-import IAlexaHandler from './IAlexaHandler';
+import AlexaRequestHandler from './AlexaRequestHandler';
 
-class PlaybackControlHandler implements IAlexaHandler<{}, {}> {
-    constructor(private facade : ILinnApiFacade) {
-    }
+class PlaybackControlHandler extends AlexaRequestHandler<{}, {}> {
     async handle(request: AlexaRequest<{}>) : Promise<AlexaResponse<{}>> {
         switch(request.directive.header.name){
             case "Play":
@@ -23,20 +20,8 @@ class PlaybackControlHandler implements IAlexaHandler<{}, {}> {
                 await this.facade.prev(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
         }
-
-        return {
-            event: {
-                header: {
-                    name: "Response",
-                    namespace: "Alexa",
-                    correlationToken: request.directive.header.correlationToken,
-                    messageId: request.directive.header.messageId + "-R",
-                    payloadVersion: "3"
-                },
-                endpoint: request.directive.endpoint,
-                payload: {}
-            }
-        };
+        
+        return this.generateResponse(request, {});
     }
 }
 

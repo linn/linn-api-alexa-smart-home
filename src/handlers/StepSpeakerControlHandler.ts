@@ -1,10 +1,7 @@
 import { AlexaRequest, AlexaResponse, StepSpeakerRequestPayload } from '../models/Alexa';
-import ILinnApiFacade from '../facade/ILinnApiFacade';
-import IAlexaHandler from './IAlexaHandler';
+import AlexaRequestHandler from './AlexaRequestHandler';
 
-class StepSpeakerControlHandler implements IAlexaHandler<{}, {}> {
-    constructor(private facade : ILinnApiFacade) {
-    }
+class StepSpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
     async handle(request: AlexaRequest<StepSpeakerRequestPayload>) : Promise<AlexaResponse<{}>> {
         switch(request.directive.header.name) {
             case "AdjustVolume":
@@ -15,19 +12,7 @@ class StepSpeakerControlHandler implements IAlexaHandler<{}, {}> {
                 break;
         }
 
-        return {
-            event: {
-                header: {
-                    name: "Response",
-                    namespace: "Alexa",
-                    correlationToken: request.directive.header.correlationToken,
-                    messageId: request.directive.header.messageId + "-R",
-                    payloadVersion: "3"
-                },
-                endpoint: request.directive.endpoint,
-                payload: {}
-            }
-        };
+        return this.generateResponse(request, {});
     }
 }
 
