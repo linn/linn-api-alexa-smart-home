@@ -12,7 +12,10 @@ describe('PowerControlHandler', () => {
         list: async (token : string) => { return null; },
         setStandby: async (deviceId : string, value : boolean, token : string) => { requestedDeviceId = deviceId, requestedStandbyState = value, requestedToken = token },
         play: async (deviceId : string, token : string) => { return null; },
-        pause: async (deviceId : string, token : string) => { return null; }
+        pause: async (deviceId : string, token : string) => { return null; },
+        stop: async (deviceId : string, token : string) => { return null; },
+        next: async (deviceId : string, token : string) => { return null; },
+        prev: async (deviceId : string, token : string) => { return null; }
     }
 
     let testContext : IAlexaContext;

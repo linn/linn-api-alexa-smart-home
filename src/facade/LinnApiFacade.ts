@@ -50,6 +50,18 @@ class LinnApiFacade implements ILinnApiFacade {
     async pause(deviceId : string, token : string) : Promise<void> {
         await webRequest.put(`${this.apiRoot}/players/${deviceId}/pause`, this.headers(token));
     }
+
+    async stop(deviceId : string, token : string) : Promise<void> {
+        await webRequest.put(`${this.apiRoot}/players/${deviceId}/stop`, this.headers(token));
+    }
+
+    async next(deviceId : string, token : string) : Promise<void> {
+        await webRequest.post(`${this.apiRoot}/players/${deviceId}/next`, this.headers(token));
+    }
+
+    async prev(deviceId : string, token : string) : Promise<void> {
+        await webRequest.post(`${this.apiRoot}/players/${deviceId}/prev`, this.headers(token));
+    }
 }
 
 export default LinnApiFacade

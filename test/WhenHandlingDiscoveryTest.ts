@@ -11,7 +11,10 @@ describe('DiscoveryHandler', () => {
         list: async (token : string) => { return endpoints; },
         setStandby: async (deviceId : string, value : boolean, token : string) => { return null; },
         play: async (deviceId : string, token : string) => { return null; },
-        pause: async (deviceId : string, token : string) => { return null; }
+        pause: async (deviceId : string, token : string) => { return null; },
+        stop: async (deviceId : string, token : string) => { return null; },
+        next: async (deviceId : string, token : string) => { return null; },
+        prev: async (deviceId : string, token : string) => { return null; }
     }
 
     let sut = new DiscoveryHandler(fakeFacade);

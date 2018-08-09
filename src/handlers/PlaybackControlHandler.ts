@@ -12,6 +12,15 @@ class PlaybackControlHandler {
             case "Pause":
                 await this.facade.pause(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
+            case "Stop":
+                await this.facade.stop(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
+                break;
+            case "Next":
+                await this.facade.next(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
+                break;
+            case "Previous":
+                await this.facade.prev(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
+                break;
         }
 
         let response : AlexaResponse<any> = {

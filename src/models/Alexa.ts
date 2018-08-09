@@ -89,7 +89,7 @@ class AlexaPlaybackController implements IAlexaCapability {
     interface = "Alexa.PlaybackController";
     type = "AlexaInterface";
     version = "3";
-    supportedOperations = [ "Play", "Pause" ];//, "Stop", "StartOver", "Previous", "Next", "Rewind", "FastForward" ];
+    supportedOperations = [ "Play", "Pause", "Stop", "Previous", "Next" ];
 }
 
 interface IEndpoint {

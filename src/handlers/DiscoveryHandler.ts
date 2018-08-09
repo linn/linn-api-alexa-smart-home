@@ -21,19 +21,9 @@ class DiscoveryHandler {
                     }
                 }
             };
-
-            log("Debug", "Response", response);
             
             context.succeed(response);
         }
-    }
-}
-
-function log(level: string, message: string, properties: object) {
-    if (properties) {
-        console.log(`LOG Level: ${level} Message: ${message} Properties: ${JSON.stringify(properties)}`);
-    } else {
-        console.log(`LOG Level: ${level} Message: ${message}`);
     }
 }
 

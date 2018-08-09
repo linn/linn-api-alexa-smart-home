@@ -55,12 +55,9 @@ describe('LinnApiFacade', () => {
             expect(playbackController).toBeTruthy();
             expect(playbackController.supportedOperations).toContain("Play");
             expect(playbackController.supportedOperations).toContain("Pause");
-            // expect(playbackController.supportedOperations).toContain("Stop");
-            // expect(playbackController.supportedOperations).toContain("StartOver");
-            // expect(playbackController.supportedOperations).toContain("Previous");
-            // expect(playbackController.supportedOperations).toContain("Next");
-            // expect(playbackController.supportedOperations).toContain("Rewind");
-            // expect(playbackController.supportedOperations).toContain("FastForward");
+            expect(playbackController.supportedOperations).toContain("Stop");
+            expect(playbackController.supportedOperations).toContain("Next");
+            expect(playbackController.supportedOperations).toContain("Previous");
         });
     });
 
@@ -129,6 +126,60 @@ describe('LinnApiFacade', () => {
             deviceApi = nock(fakeApiRoot).put('/players/device0/pause').reply(200);
 
             await sut.pause(deviceId, token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });    
+    });
+
+    describe('Stopping Playback', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/stop').reply(200);
+
+            await sut.stop(deviceId, token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });    
+    });
+
+    describe('Skipping to the next track', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).post('/players/device0/next').reply(200);
+
+            await sut.next(deviceId, token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });    
+    });
+
+    describe('Skipping to the previous track', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).post('/players/device0/prev').reply(200);
+
+            await sut.prev(deviceId, token);
         });
 
         it('Should call API', () => {
