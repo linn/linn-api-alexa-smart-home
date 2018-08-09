@@ -16,7 +16,8 @@ describe('DiscoveryHandler', () => {
         next: async (deviceId : string, token : string) => { return null; },
         prev: async (deviceId : string, token : string) => { return null; },
         setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
-        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; }
+        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; },
+        setVolume: async (deviceId : string, volume : number, token : string) => { return null; }
     }
 
     let sut = new DiscoveryHandler(fakeFacade);

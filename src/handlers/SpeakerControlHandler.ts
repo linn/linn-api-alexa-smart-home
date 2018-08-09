@@ -21,6 +21,9 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
             case "SetMute":
                 await this.facade.setMute(request.directive.endpoint.endpointId, request.directive.payload.mute, request.directive.endpoint.scope.token);
                 break;
+            case "SetVolume":
+                await this.facade.setVolume(request.directive.endpoint.endpointId, request.directive.payload.volume, request.directive.endpoint.scope.token);
+                break;
         }
 
         return this.generateResponse(request, {});

@@ -17,7 +17,8 @@ describe('PlaybackControlHandler', () => {
         next: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "next", requestedToken = token },
         prev: async (deviceId : string, token : string) => { requestedDeviceId = deviceId, actionCalled = "prev", requestedToken = token },
         setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
-        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; }
+        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; },
+        setVolume: async (deviceId : string, volume : number, token : string) => { return null; }
     }
 
     let sut = new PlaybackControlHandler(fakeFacade);

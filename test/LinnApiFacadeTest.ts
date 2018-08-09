@@ -239,4 +239,22 @@ describe('LinnApiFacade', () => {
             expect(deviceApi.isDone()).toBeTruthy();
         });    
     });
+
+    describe('When setting volume', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(200);
+
+            await sut.setVolume(deviceId, 11, token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });    
+    });
 });

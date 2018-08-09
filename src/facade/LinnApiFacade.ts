@@ -74,6 +74,10 @@ class LinnApiFacade implements ILinnApiFacade {
     async adjustVolume(deviceId : string, steps : number, token : string) : Promise<void> {
         await webRequest.post(`${this.apiRoot}/players/${deviceId}/volume?steps=${steps}`, this.headers(token));
     }
+
+    async setVolume(deviceId : string, level : number, token : string) : Promise<void> {
+        await webRequest.put(`${this.apiRoot}/players/${deviceId}/volume?level=${level}`, this.headers(token));
+    }
 }
 
 export default LinnApiFacade
