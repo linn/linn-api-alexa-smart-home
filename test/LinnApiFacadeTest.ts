@@ -46,11 +46,10 @@ describe('LinnApiFacade', () => {
             expect(endpoints[0].manufacturerName).toBe("Linn Products Ltd.");
             expect(endpoints[0].friendlyName).toBe("Morning Room");
             expect(endpoints[0].description).toBe("Akurate DSM");
-            expect(endpoints[0].capabilities).toHaveLength(5);
+            expect(endpoints[0].capabilities).toHaveLength(4);
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.PowerController")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.Speaker")).toBeTruthy();
-            expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.StepSpeaker")).toBeTruthy();
             let playbackController = endpoints[0].capabilities.find(c => c.interface == "Alexa.PlaybackController");
             expect(playbackController).toBeTruthy();
             expect(playbackController.supportedOperations).toContain("Play");

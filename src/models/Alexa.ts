@@ -44,9 +44,10 @@ interface DiscoveryResponsePayload extends Payload {
     endpoints: IEndpoint[];
 }
 
-interface StepSpeakerRequestPayload extends Payload {
+interface SpeakerRequestPayload extends Payload {
     mute?: boolean;
-    volumeSteps?: number;
+    volume?: number;
+    volumeDefault?: boolean;
 }
 
 interface AlexaEvent<T> {
@@ -84,12 +85,6 @@ class AlexaSpeaker implements IAlexaCapability {
     version = "3";
 }
 
-class AlexaStepSpeaker implements IAlexaCapability {
-    interface = "Alexa.StepSpeaker";
-    type = "AlexaInterface";
-    version = "3";
-}
-
 class AlexaPlaybackController implements IAlexaCapability {
     interface = "Alexa.PlaybackController";
     type = "AlexaInterface";
@@ -117,10 +112,9 @@ class SpeakerEndpoint implements IEndpoint {
             new AlexaCapability(),
             new AlexaPowerController(),
             new AlexaSpeaker(),
-            new AlexaStepSpeaker(),
             new AlexaPlaybackController()
         ];
     }
 }
 
-export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, StepSpeakerRequestPayload }
+export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload }

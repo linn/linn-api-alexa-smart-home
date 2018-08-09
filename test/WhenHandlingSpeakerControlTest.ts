@@ -1,8 +1,8 @@
-import StepSpeakerControlHandler from '../src/handlers/StepSpeakerControlHandler';
-import { AlexaRequest, AlexaResponse, StepSpeakerRequestPayload } from '../src/models/Alexa';
+import SpeakerControlHandler from '../src/handlers/SpeakerControlHandler';
+import { AlexaRequest, AlexaResponse, SpeakerRequestPayload } from '../src/models/Alexa';
 import ILinnApiFacade from '../src/facade/ILinnApiFacade';
 
-describe('StepSpeakerControl', () => {
+describe('SpeakerControl', () => {
     let alexaRequest : AlexaRequest<any>;
     let alexaResponse : AlexaResponse<any>;
     let requestedDeviceId : string;
@@ -21,7 +21,7 @@ describe('StepSpeakerControl', () => {
         adjustVolume: async (deviceId : string, steps : number, token : string) => { requestedDeviceId = deviceId, requestedVolumeSteps = steps, requestedToken = token }
     }
 
-    let sut = new StepSpeakerControlHandler(fakeFacade);
+    let sut = new SpeakerControlHandler(fakeFacade);
 
     function generateRequest<T>(command : string, payload : T) : AlexaRequest<T> {
         return {
@@ -50,7 +50,7 @@ describe('StepSpeakerControl', () => {
         let volumeRequest = 20;
 
         beforeEach(async () => {
-            alexaRequest = generateRequest<StepSpeakerRequestPayload>("AdjustVolume", { volumeSteps: volumeRequest });
+            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
@@ -72,11 +72,63 @@ describe('StepSpeakerControl', () => {
         });
     });
 
+    describe('#IncreaseVolumeDefault', () => {
+        let volumeRequest = 10;
+
+        beforeEach(async () => {
+            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
+            alexaResponse = await sut.handle(alexaRequest);
+        });
+
+        test('Should invoke facade, and increase by 3', () => {
+            expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
+            expect(requestedVolumeSteps).toBe(3);
+            expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+        });
+
+        test('Should respond with expected endpoints', () => {
+            expect(alexaResponse.event.header.name).toBe("Response");
+            expect(alexaResponse.event.header.namespace).toBe("Alexa");
+            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+            expect(alexaResponse.event.header.payloadVersion).toBe("3");
+            expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
+            expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
+            expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
+            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+        });
+    });
+
+    describe('#DecreaseVolumeDefault', () => {
+        let volumeRequest = -10;
+
+        beforeEach(async () => {
+            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
+            alexaResponse = await sut.handle(alexaRequest);
+        });
+
+        test('Should invoke facade, and decrease by 5', () => {
+            expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
+            expect(requestedVolumeSteps).toBe(-5);
+            expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+        });
+
+        test('Should respond with expected endpoints', () => {
+            expect(alexaResponse.event.header.name).toBe("Response");
+            expect(alexaResponse.event.header.namespace).toBe("Alexa");
+            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+            expect(alexaResponse.event.header.payloadVersion).toBe("3");
+            expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
+            expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
+            expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
+            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+        });
+    });
+
     describe('#SetMute', () => {
         let muteRequest = true;
 
         beforeEach(async () => {
-            alexaRequest = generateRequest<StepSpeakerRequestPayload>("SetMute", { mute: muteRequest });
+            alexaRequest = generateRequest<SpeakerRequestPayload>("SetMute", { mute: muteRequest });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
