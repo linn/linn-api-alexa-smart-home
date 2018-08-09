@@ -64,11 +64,15 @@ class LinnApiFacade implements ILinnApiFacade {
     }
 
     async setMute(deviceId : string, value : boolean, token : string) : Promise<void> {
-
+        if (value) {
+            await webRequest.put(`${this.apiRoot}/players/${deviceId}/mute`, this.headers(token));
+        } else {
+            await webRequest.delete(`${this.apiRoot}/players/${deviceId}/mute`, this.headers(token));
+        }
     }
 
     async adjustVolume(deviceId : string, steps : number, token : string) : Promise<void> {
-        
+        await webRequest.post(`${this.apiRoot}/players/${deviceId}/volume?steps=${steps}`, this.headers(token));
     }
 }
 
