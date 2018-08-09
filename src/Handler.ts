@@ -10,7 +10,7 @@ let handlers = {
     "Alexa.PlaybackController": PlaybackControlHandler
 }
 
-function handler(request: AlexaRequest<any>, context: IAlexaContext) {
+async function handler(request: AlexaRequest<any>, context: IAlexaContext) {
     log("Debug", "Request",  request);
 
     let Handler = handlers[request.directive.header.namespace];
@@ -19,7 +19,7 @@ function handler(request: AlexaRequest<any>, context: IAlexaContext) {
         let facade = new LinnApiFacade("https://api.linn.co.uk");
         let handler = new Handler(facade);       
 
-        let response = handler.handle(request);
+        let response = await handler.handle(request);
 
         log("Debug", "Response", response);
         
