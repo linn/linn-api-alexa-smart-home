@@ -1,4 +1,4 @@
-import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
+import { AlexaRequest, AlexaResponse } from '../models/Alexa';
 import ILinnApiFacade from '../facade/ILinnApiFacade';
 import IAlexaHandler from './IAlexaHandler';
 
@@ -34,7 +34,7 @@ class PlaybackControlHandler implements IAlexaHandler<{}, {}> {
                     payloadVersion: "3"
                 },
                 endpoint: request.directive.endpoint,
-                payload: { sdfsdf: 3434, sdfsdfds: 43543 }
+                payload: {}
             }
         };
     }

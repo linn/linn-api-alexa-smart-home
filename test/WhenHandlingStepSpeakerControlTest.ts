@@ -1,59 +1,62 @@
-import PowerControlHandler from '../src/handlers/PowerControlHandler';
-import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
+import StepSpeakerControlHandler from '../src/handlers/StepSpeakerControlHandler';
+import { AlexaRequest, AlexaResponse, StepSpeakerRequestPayload } from '../src/models/Alexa';
 import ILinnApiFacade from '../src/facade/ILinnApiFacade';
 
-describe('PowerControlHandler', () => {
+describe('StepSpeakerControl', () => {
     let alexaRequest : AlexaRequest<any>;
     let alexaResponse : AlexaResponse<any>;
     let requestedDeviceId : string;
-    let requestedStandbyState : boolean;
+    let requestedVolumeSteps : number;
+    let requestedMuteSettings : boolean;
     let requestedToken : string;
     let fakeFacade : ILinnApiFacade = {
         list: async (token : string) => { return null; },
-        setStandby: async (deviceId : string, value : boolean, token : string) => { requestedDeviceId = deviceId, requestedStandbyState = value, requestedToken = token },
+        setStandby: async (deviceId : string, value : boolean, token : string) => { return null; },
         play: async (deviceId : string, token : string) => { return null; },
         pause: async (deviceId : string, token : string) => { return null; },
         stop: async (deviceId : string, token : string) => { return null; },
         next: async (deviceId : string, token : string) => { return null; },
         prev: async (deviceId : string, token : string) => { return null; },
-        setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
-        adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; }
+        setMute: async (deviceId : string, value : boolean, token : string) => { requestedDeviceId = deviceId, requestedMuteSettings = value, requestedToken = token },
+        adjustVolume: async (deviceId : string, steps : number, token : string) => { requestedDeviceId = deviceId, requestedVolumeSteps = steps, requestedToken = token }
     }
 
-    let sut = new PowerControlHandler(fakeFacade);
+    let sut = new StepSpeakerControlHandler(fakeFacade);
 
-    function generateRequest(command : string) : AlexaRequest<any> {
+    function generateRequest<T>(command : string, payload : T) : AlexaRequest<T> {
         return {
             "directive": {
                 "header": {
-                    "namespace": "Alexa.PowerController",
+                    "namespace": "Alexa.StepSpeaker",
                     "name": command,
-                    "payloadVersion": "3",
-                    "messageId": "1bd5d003-31b9-476f-ad03-71d471922820",
-                    "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg=="
+                    "messageId": "c8d53423-b49b-48ee-9181-f50acedf2870",
+                    "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg==",
+                    "payloadVersion": "3"
                 },
                 "endpoint": {
                     "scope": {
                         "type": "BearerToken",
-                        "token": "access-token-from-skill"
+                        "token":"access-token-from-skill"
                     },
-                    "endpointId": "appliance-001",
+                    "endpointId": "stepSpeaker1",
                     "cookie": {}
                 },
-                "payload": {}
+                "payload": payload
             }
-        };
+        }
     }
 
-    describe('#TurnOff', () => {
+    describe('#AdjustVolume', () => {
+        let volumeRequest = 20;
+
         beforeEach(async () => {
-            alexaRequest = generateRequest("TurnOff");
+            alexaRequest = generateRequest<StepSpeakerRequestPayload>("AdjustVolume", { volumeSteps: volumeRequest });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
             expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedStandbyState).toBe(true);
+            expect(requestedVolumeSteps).toBe(volumeRequest);
             expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
         });
 
@@ -69,15 +72,17 @@ describe('PowerControlHandler', () => {
         });
     });
 
-    describe('#TurnOn', () => {
+    describe('#SetMute', () => {
+        let muteRequest = true;
+
         beforeEach(async () => {
-            alexaRequest = generateRequest("TurnOn");
+            alexaRequest = generateRequest<StepSpeakerRequestPayload>("SetMute", { mute: muteRequest });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
         test('Should invoke facade', () => {
             expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedStandbyState).toBe(false);
+            expect(requestedMuteSettings).toBe(muteRequest);
             expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
         });
 

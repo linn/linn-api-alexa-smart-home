@@ -1,5 +1,5 @@
 import PlaybackControlHandler from '../src/handlers/PlaybackControlHandler';
-import { AlexaRequest, AlexaResponse, IAlexaContext } from '../src/models/Alexa';
+import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
 import ILinnApiFacade from '../src/facade/ILinnApiFacade';
 
 describe('PlaybackControlHandler', () => {

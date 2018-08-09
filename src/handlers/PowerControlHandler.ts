@@ -1,4 +1,4 @@
-import { AlexaRequest, AlexaResponse, IAlexaContext, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
+import { AlexaRequest, AlexaResponse } from '../models/Alexa';
 import ILinnApiFacade from '../facade/ILinnApiFacade';
 import IAlexaHandler from './IAlexaHandler';
 

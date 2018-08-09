@@ -37,11 +37,16 @@ interface AlexaRequest<T> {
 interface Payload {}
 
 interface DiscoveryRequestPayload extends Payload {
-    scope: Scope
+    scope: Scope;
 }
 
 interface DiscoveryResponsePayload extends Payload {
-    endpoints: IEndpoint[]
+    endpoints: IEndpoint[];
+}
+
+interface StepSpeakerRequestPayload extends Payload {
+    mute?: boolean;
+    volumeSteps?: number;
 }
 
 interface AlexaEvent<T> {
@@ -118,4 +123,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload }
+export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, StepSpeakerRequestPayload }

@@ -3,11 +3,13 @@ import PowerControlHandler from './handlers/PowerControlHandler';
 import { AlexaRequest, IAlexaContext, DiscoveryRequestPayload } from './models/Alexa';
 import LinnApiFacade from './facade/LinnApiFacade';
 import PlaybackControlHandler from './handlers/PlaybackControlHandler';
+import StepSpeakerControlHandler from './handlers/StepSpeakerControlHandler';
 
 let handlers = {
     "Alexa.Discovery": DiscoveryHandler,
     "Alexa.PowerController": PowerControlHandler,
-    "Alexa.PlaybackController": PlaybackControlHandler
+    "Alexa.PlaybackController": PlaybackControlHandler,
+    "Alexa.StepSpeaker": StepSpeakerControlHandler
 }
 
 async function handler(request: AlexaRequest<any>, context: IAlexaContext) {
