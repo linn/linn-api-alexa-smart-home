@@ -1,5 +1,5 @@
 import LinnApiFacade from '../src/facade/LinnApiFacade';
-import ILinnApiFacade from '../src/facade/ILinnApiFacade';
+import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError } from "../src/facade/ILinnApiFacade";
 import { IEndpoint } from '../src/models/Alexa';
 import * as nock from 'nock';
 
@@ -256,5 +256,149 @@ describe('LinnApiFacade', () => {
         it('Should call API', () => {
             expect(deviceApi.isDone()).toBeTruthy();
         });    
+    });
+
+    describe('When the API returns status code 401', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(401, { error: 'AccessTokenAuthenticationFailureException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(InvalidAuthorizationCredentialError);
+        });
+    });
+
+    describe('When the API returns status code 403', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(403, { error: 'AccessTokenMissingClaimException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(InvalidAuthorizationCredentialError);
+        });
+    });
+
+    describe('When the API returns status code 404', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(404, { error: 'ClientPlayerNotFoundException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(NoSuchEndpointError);
+        });
+    });
+
+    describe('When the API returns status code 504', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(504, { error: 'DeviceServiceTimeoutException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(EndpointUnreachableError);
+        });
+    });
+
+    describe('When the API returns status code 502', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(502, { error: 'DeviceServiceException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(EndpointInternalError);
+        });
+    });
+
+    describe('When the API returns status code 400', () => {
+        let token : string;
+        let deviceId : string;
+        let error : any;
+        
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(400, { error: 'ClientDomainException' });
+
+            try {
+                await sut.setVolume(deviceId, 11, token);
+            }
+            catch (e) {
+                error = e;
+            }
+        });
+
+        it('Should throw exception', async () => {
+            expect(error).toBeInstanceOf(EndpointInternalError);
+        });
     });
 });

@@ -13,4 +13,44 @@ interface ILinnApiFacade {
     setVolume(deviceId : string, level : number, token : string) : Promise<void>
 }
 
+class InvalidAuthorizationCredentialError extends Error
+{
+    constructor() {
+        super();
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, InvalidAuthorizationCredentialError.prototype);
+    }
+}
+
+class NoSuchEndpointError extends Error
+{
+    constructor() {
+        super();
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, NoSuchEndpointError.prototype);
+    }
+}
+
+class EndpointUnreachableError extends Error
+{
+    constructor() {
+        super();
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, EndpointUnreachableError.prototype);
+    }
+}
+
+class EndpointInternalError extends Error
+{
+    constructor() {
+        super();
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, EndpointInternalError.prototype);
+    }}
+
 export default ILinnApiFacade;
+export { InvalidAuthorizationCredentialError, NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError };

@@ -1,7 +1,4 @@
 interface IAlexaContext {
-    succeed(result?: AlexaResponse<Payload>): void;
-    fail(error?: Error): void;
-    done(error?: Error, result?: Object): void; // result must be JSON.stringifyable
     getRemainingTimeInMillis(): number;
 }
 
@@ -35,6 +32,11 @@ interface AlexaRequest<T> {
 }
 
 interface Payload {}
+
+interface ErrorPayload extends Payload {
+    type: string;
+    message? : string;
+}
 
 interface DiscoveryRequestPayload extends Payload {
     scope: Scope;
@@ -117,4 +119,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { Payload, IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload }
+export { Payload, IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload, ErrorPayload }
