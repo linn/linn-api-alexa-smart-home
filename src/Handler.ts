@@ -1,6 +1,6 @@
 import DiscoveryHandler from './handlers/DiscoveryHandler';
 import PowerControlHandler from './handlers/PowerControlHandler';
-import { AlexaRequest, IAlexaContext, DiscoveryRequestPayload } from './models/Alexa';
+import { AlexaRequest, IAlexaContext } from './models/Alexa';
 import LinnApiFacade from './facade/LinnApiFacade';
 import PlaybackControlHandler from './handlers/PlaybackControlHandler';
 import SpeakerControlHandler from './handlers/SpeakerControlHandler';

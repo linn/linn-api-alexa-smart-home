@@ -117,4 +117,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload }
+export { Payload, IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload }
