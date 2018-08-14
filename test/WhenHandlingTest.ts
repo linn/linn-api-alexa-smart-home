@@ -130,13 +130,85 @@ describe('Handler', () => {
             expect(alexaResponse.event.payload.type).toBe("INTERNAL_ERROR");
         });
     });
+
+    describe('And a request handler fails due to no supporting handler', () => {
+        beforeEach((done) => {
+            alexaRequest = generateRequest("Play", "Alexa.MissingHandler");
+            handler(alexaRequest, null, (error, result) => {
+                if (error) {
+                    done(error);
+                } else {
+                    alexaResponse = result;
+                    done();
+                }
+            });
+        });
+
+        it('Should set Alexa Error Response', () => {
+            expect(alexaResponse.event.header.namespace).toBe("Alexa");
+            expect(alexaResponse.event.header.name).toBe("ErrorResponse");
+            expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
+            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+            expect(alexaResponse.event.header.payloadVersion).toBe("3");
+            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+            expect(alexaResponse.event.payload.type).toBe("INVALID_DIRECTIVE");
+        });
+    });
+
+    describe('And a request handler fails due to no supported command', () => {
+        beforeEach((done) => {
+            alexaRequest = generateRequest("NotACommand");
+            handler(alexaRequest, null, (error, result) => {
+                if (error) {
+                    done(error);
+                } else {
+                    alexaResponse = result;
+                    done();
+                }
+            });
+        });
+
+        it('Should set Alexa Error Response', () => {
+            expect(alexaResponse.event.header.namespace).toBe("Alexa");
+            expect(alexaResponse.event.header.name).toBe("ErrorResponse");
+            expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
+            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+            expect(alexaResponse.event.header.payloadVersion).toBe("3");
+            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+            expect(alexaResponse.event.payload.type).toBe("INVALID_DIRECTIVE");
+        });
+    });
+
+    describe('And a request handler fails due to an invalid value', () => {
+        beforeEach((done) => {
+            alexaRequest = generateRequest("SetVolume", "Alexa.Speaker");
+            handler(alexaRequest, null, (error, result) => {
+                if (error) {
+                    done(error);
+                } else {
+                    alexaResponse = result;
+                    done();
+                }
+            });
+        });
+
+        it('Should set Alexa Error Response', () => {
+            expect(alexaResponse.event.header.namespace).toBe("Alexa");
+            expect(alexaResponse.event.header.name).toBe("ErrorResponse");
+            expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
+            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+            expect(alexaResponse.event.header.payloadVersion).toBe("3");
+            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+            expect(alexaResponse.event.payload.type).toBe("INVALID_VALUE");
+        });
+    });
 });
 
-function generateRequest(name : string) : AlexaRequest<any> {
+function generateRequest(name : string, namespace : string = "Alexa.PlaybackController") : AlexaRequest<any> {
     return {
         "directive": {
             "header": {
-                "namespace": "Alexa.PlaybackController",
+                "namespace": namespace,
                 "name": name,
                 "messageId": "abc-123-def-456",
                 "payloadVersion": "3"

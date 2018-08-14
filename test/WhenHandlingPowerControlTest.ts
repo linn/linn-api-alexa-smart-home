@@ -1,6 +1,6 @@
 import PowerControlHandler from '../src/handlers/PowerControlHandler';
 import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
-import ILinnApiFacade from '../src/facade/ILinnApiFacade';
+import ILinnApiFacade, { InvalidDirectiveError } from '../src/facade/ILinnApiFacade';
 
 describe('PowerControlHandler', () => {
     let alexaRequest : AlexaRequest<any>;
@@ -91,6 +91,23 @@ describe('PowerControlHandler', () => {
             expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
             expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+        });
+    });
+
+    describe('#Invalid', () => {
+        let thrownError : Error;
+        beforeEach(async () => {
+            alexaRequest = generateRequest("Invalid");
+            try {
+                await sut.handle(alexaRequest);
+            } catch (e) {
+                thrownError = e;
+            }
+        });
+
+        test('Should throw error', () => {
+            expect(thrownError).toBeDefined();
+            expect(thrownError).toBeInstanceOf(InvalidDirectiveError);
         });
     });
 });

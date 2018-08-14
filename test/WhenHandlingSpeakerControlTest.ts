@@ -1,6 +1,6 @@
 import SpeakerControlHandler from '../src/handlers/SpeakerControlHandler';
 import { AlexaRequest, AlexaResponse, SpeakerRequestPayload } from '../src/models/Alexa';
-import ILinnApiFacade from '../src/facade/ILinnApiFacade';
+import ILinnApiFacade, { InvalidDirectiveError, InvalidValueError } from '../src/facade/ILinnApiFacade';
 
 describe('SpeakerControl', () => {
     let alexaRequest : AlexaRequest<any>;
@@ -29,7 +29,7 @@ describe('SpeakerControl', () => {
         return {
             "directive": {
                 "header": {
-                    "namespace": "Alexa.StepSpeaker",
+                    "namespace": "Alexa.Speaker",
                     "name": command,
                     "messageId": "c8d53423-b49b-48ee-9181-f50acedf2870",
                     "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg==",
@@ -40,7 +40,7 @@ describe('SpeakerControl', () => {
                         "type": "BearerToken",
                         "token":"access-token-from-skill"
                     },
-                    "endpointId": "stepSpeaker1",
+                    "endpointId": "speaker1",
                     "cookie": {}
                 },
                 "payload": payload
@@ -49,54 +49,94 @@ describe('SpeakerControl', () => {
     }
 
     describe('#SetVolume', () => {
-        let volumeRequest = 11;
+        describe('With valid payload', () => {
+            let volumeRequest = 11;
 
-        beforeEach(async () => {
-            alexaRequest = generateRequest<SpeakerRequestPayload>("SetVolume", { volume: volumeRequest });
-            alexaResponse = await sut.handle(alexaRequest);
+            beforeEach(async () => {
+                alexaRequest = generateRequest<SpeakerRequestPayload>("SetVolume", { volume: volumeRequest });
+                alexaResponse = await sut.handle(alexaRequest);
+            });
+
+            test('Should invoke facade', () => {
+                expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(requestedVolume).toBe(volumeRequest);
+                expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+            });
+
+            test('Should respond with expected endpoints', () => {
+                expect(alexaResponse.event.header.name).toBe("Response");
+                expect(alexaResponse.event.header.namespace).toBe("Alexa");
+                expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+                expect(alexaResponse.event.header.payloadVersion).toBe("3");
+                expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
+                expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
+                expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+            });
         });
 
-        test('Should invoke facade', () => {
-            expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedVolume).toBe(volumeRequest);
-            expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
-        });
+        describe('With invalid payload', () => {
+            let thrownError : Error;
 
-        test('Should respond with expected endpoints', () => {
-            expect(alexaResponse.event.header.name).toBe("Response");
-            expect(alexaResponse.event.header.namespace).toBe("Alexa");
-            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
-            expect(alexaResponse.event.header.payloadVersion).toBe("3");
-            expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
-            expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
-            expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
-            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+            beforeEach(async () => {
+                alexaRequest = generateRequest<{}>("SetVolume", {});
+                try {
+                    await sut.handle(alexaRequest);
+                } catch (e) {
+                    thrownError = e;
+                }
+            });
+
+            test('Should throw error', () => {
+                expect(thrownError).toBeDefined();
+                expect(thrownError).toBeInstanceOf(InvalidValueError);
+            });
         });
     });
 
     describe('#AdjustVolume', () => {
-        let volumeRequest = 20;
+        describe('With valid payload', () => {
+            let volumeRequest = 20;
 
-        beforeEach(async () => {
-            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest });
-            alexaResponse = await sut.handle(alexaRequest);
+            beforeEach(async () => {
+                alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest });
+                alexaResponse = await sut.handle(alexaRequest);
+            });
+
+            test('Should invoke facade', () => {
+                expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(requestedVolumeSteps).toBe(volumeRequest);
+                expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+            });
+
+            test('Should respond with expected endpoints', () => {
+                expect(alexaResponse.event.header.name).toBe("Response");
+                expect(alexaResponse.event.header.namespace).toBe("Alexa");
+                expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+                expect(alexaResponse.event.header.payloadVersion).toBe("3");
+                expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
+                expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
+                expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+            });
         });
 
-        test('Should invoke facade', () => {
-            expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(requestedVolumeSteps).toBe(volumeRequest);
-            expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
-        });
+        describe('With invalid payload', () => {
+            let thrownError : Error;
 
-        test('Should respond with expected endpoints', () => {
-            expect(alexaResponse.event.header.name).toBe("Response");
-            expect(alexaResponse.event.header.namespace).toBe("Alexa");
-            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
-            expect(alexaResponse.event.header.payloadVersion).toBe("3");
-            expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
-            expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
-            expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
-            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+            beforeEach(async () => {
+                alexaRequest = generateRequest<{}>("AdjustVolume", {});
+                try {
+                    await sut.handle(alexaRequest);
+                } catch (e) {
+                    thrownError = e;
+                }
+            });
+
+            test('Should throw error', () => {
+                expect(thrownError).toBeDefined();
+                expect(thrownError).toBeInstanceOf(InvalidValueError);
+            });
         });
     });
 
@@ -175,6 +215,23 @@ describe('SpeakerControl', () => {
             expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
             expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+        });
+    });
+
+    describe('#Invalid', () => {
+        let thrownError : Error;
+        beforeEach(async () => {
+            alexaRequest = generateRequest<{}>("Invalid", {});
+            try {
+                await sut.handle(alexaRequest);
+            } catch (e) {
+                thrownError = e;
+            }
+        });
+
+        test('Should throw error', () => {
+            expect(thrownError).toBeDefined();
+            expect(thrownError).toBeInstanceOf(InvalidDirectiveError);
         });
     });
 });

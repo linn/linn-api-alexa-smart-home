@@ -4,7 +4,7 @@ import { AlexaRequest, IAlexaContext, AlexaResponse, ErrorPayload } from './mode
 import LinnApiFacade from './facade/LinnApiFacade';
 import PlaybackControlHandler from './handlers/PlaybackControlHandler';
 import SpeakerControlHandler from './handlers/SpeakerControlHandler';
-import { InvalidAuthorizationCredentialError, EndpointUnreachableError, NoSuchEndpointError } from './facade/ILinnApiFacade';
+import { InvalidAuthorizationCredentialError, EndpointUnreachableError, NoSuchEndpointError, InvalidDirectiveError, InvalidValueError } from './facade/ILinnApiFacade';
 
 let handlers = {
     "Alexa.Discovery": DiscoveryHandler,
@@ -18,27 +18,26 @@ async function handler(request: AlexaRequest<any>, context: IAlexaContext, callb
 
     let Handler = handlers[request.directive.header.namespace];
     
-    if (Handler) {
-        let facade = new LinnApiFacade("https://api.linn.co.uk");
-        let handler = new Handler(facade);       
+    try {
+        if (Handler) {
+            let facade = new LinnApiFacade("https://api.linn.co.uk");
+            let handler = new Handler(facade);
 
-        try {
             let response = await handler.handle(request);
-            
+
             log("Debug", "Response", response);
-            
-            callback(null, response);
-        }
-        catch (error) {
-            let response = generateErrorResponse(request, error);
-
-            log("Debug", "Error Response", response);
 
             callback(null, response);
+        } else {
+            throw new InvalidDirectiveError();
         }
     }
-    else {
-        callback(new Error("No Handler"));
+    catch (error) {
+        let response = generateErrorResponse(request, error);
+
+        log("Debug", "Error Response", response);
+
+        callback(null, response);
     }
 }
 
@@ -51,6 +50,10 @@ function generateErrorResponse(request : AlexaRequest<any>, error : Error) : Ale
         errorType = "ENDPOINT_UNREACHABLE";
     } else if (error instanceof NoSuchEndpointError) {
         errorType = "NO_SUCH_ENDPOINT";
+    } else if (error instanceof InvalidDirectiveError) {
+        errorType = "INVALID_DIRECTIVE";
+    } else if (error instanceof InvalidValueError) {
+        errorType = "INVALID_VALUE";
     }
 
     return {

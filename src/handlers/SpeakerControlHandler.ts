@@ -1,8 +1,14 @@
 import { AlexaRequest, AlexaResponse, SpeakerRequestPayload } from '../models/Alexa';
 import AlexaRequestHandler from './AlexaRequestHandler';
+import { InvalidDirectiveError, InvalidValueError } from '../facade/ILinnApiFacade';
 
 const DEFAULT_VOLUME_INCREMENT = 3;
 const DEFAULT_VOLUME_DECREMENT = -5;
+
+function isNumber(value: string | number): boolean
+{
+    return value && !isNaN(Number(value.toString()));
+}
 
 class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
     async handle(request: AlexaRequest<SpeakerRequestPayload>) : Promise<AlexaResponse<{}>> {
@@ -15,6 +21,9 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
                         await this.facade.adjustVolume(request.directive.endpoint.endpointId, DEFAULT_VOLUME_DECREMENT, request.directive.endpoint.scope.token);
                     }
                 } else {
+                    if (!isNumber(request.directive.payload.volume)) {
+                        throw new InvalidValueError();
+                    }
                     await this.facade.adjustVolume(request.directive.endpoint.endpointId, request.directive.payload.volume, request.directive.endpoint.scope.token);
                 }
                 break;
@@ -22,8 +31,13 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
                 await this.facade.setMute(request.directive.endpoint.endpointId, request.directive.payload.mute, request.directive.endpoint.scope.token);
                 break;
             case "SetVolume":
+                if (!isNumber(request.directive.payload.volume)) {
+                    throw new InvalidValueError();
+                }
                 await this.facade.setVolume(request.directive.endpoint.endpointId, request.directive.payload.volume, request.directive.endpoint.scope.token);
                 break;
+            default:
+                throw new InvalidDirectiveError();
         }
 
         return this.generateResponse(request, {});
