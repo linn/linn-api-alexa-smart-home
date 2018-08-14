@@ -4,6 +4,7 @@ provider:
   name: aws
   stage: production
   region: eu-west-1
+  logRetentionInDays: 7
 
 package:
   include:
@@ -15,6 +16,8 @@ functions:
     handler: lib/js/Handler.handler
     description: Alexa Smart Home Skill Backend
     runtime: nodejs8.10
+    timeout: 7
+    memorySize: 128
     events:
     - alexaSmartHome:
         appId: amzn1.ask.skill.e94eecfe-71a0-43f1-9785-ed517f984f02
