@@ -1,10 +1,10 @@
 import { handler } from '../src/Handler';
-import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
+import { IAlexaRequest, IAlexaResponse } from '../src/models/Alexa';
 import * as nock from 'nock';
 
 describe('Handler', () => {
-    let alexaRequest : AlexaRequest<any>;
-    let alexaResponse : AlexaResponse<any>;
+    let alexaRequest : IAlexaRequest<any>;
+    let alexaResponse : IAlexaResponse<any>;
     let deviceApi : nock.Scope;
     let apiRoot = "https://api.linn.co.uk";
 
@@ -204,7 +204,7 @@ describe('Handler', () => {
     });
 });
 
-function generateRequest(name : string, namespace : string = "Alexa.PlaybackController") : AlexaRequest<any> {
+function generateRequest(name : string, namespace : string = "Alexa.PlaybackController") : IAlexaRequest<any> {
     return {
         "directive": {
             "header": {

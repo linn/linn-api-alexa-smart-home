@@ -1,9 +1,9 @@
-import { AlexaRequest, AlexaResponse } from '../models/Alexa';
+import { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
 import AlexaRequestHandler from './AlexaRequestHandler';
 import { InvalidDirectiveError } from '../facade/ILinnApiFacade';
 
 class PowerControlHandler extends AlexaRequestHandler<{}, {}> {
-    async handle(request: AlexaRequest<{}>) : Promise<AlexaResponse<{}>> {
+    async handle(request: IAlexaRequest<{}>) : Promise<IAlexaResponse<{}>> {
         switch(request.directive.header.name) {
             case "TurnOn":
                 await this.facade.setStandby(request.directive.endpoint.endpointId, false, request.directive.endpoint.scope.token);

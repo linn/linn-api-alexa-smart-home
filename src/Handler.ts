@@ -1,6 +1,6 @@
 import DiscoveryHandler from './handlers/DiscoveryHandler';
 import PowerControlHandler from './handlers/PowerControlHandler';
-import { AlexaRequest, IAlexaContext, AlexaResponse, ErrorPayload } from './models/Alexa';
+import { IAlexaRequest, IAlexaContext, IAlexaResponse, IErrorPayload } from './models/Alexa';
 import LinnApiFacade from './facade/LinnApiFacade';
 import PlaybackControlHandler from './handlers/PlaybackControlHandler';
 import SpeakerControlHandler from './handlers/SpeakerControlHandler';
@@ -13,7 +13,7 @@ let handlers = {
     "Alexa.Speaker": SpeakerControlHandler
 }
 
-async function handler(request: AlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {
+async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {
     log("Debug", "Request",  request);
 
     let Handler = handlers[request.directive.header.namespace];
@@ -41,7 +41,7 @@ async function handler(request: AlexaRequest<any>, context: IAlexaContext, callb
     }
 }
 
-function generateErrorResponse(request : AlexaRequest<any>, error : Error) : AlexaResponse<ErrorPayload> {
+function generateErrorResponse(request : IAlexaRequest<any>, error : Error) : IAlexaResponse<IErrorPayload> {
     let errorType : string = "INTERNAL_ERROR";
 
     if (error instanceof InvalidAuthorizationCredentialError) {

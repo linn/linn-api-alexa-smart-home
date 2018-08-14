@@ -2,7 +2,7 @@ interface IAlexaContext {
     getRemainingTimeInMillis(): number;
 }
 
-interface RequestDirectiveHeader {
+interface IRequestDirectiveHeader {
     namespace: string;
     name: string;
     messageId: string;
@@ -10,56 +10,56 @@ interface RequestDirectiveHeader {
     payloadVersion: string;
 }
 
-interface Scope {
+interface IScope {
     type: string;
     token: string;
 }
 
-interface RequestDirectiveEndpoint {
-    scope: Scope;
+interface IRequestDirectiveEndpoint {
+    scope: IScope;
     endpointId: string;
     cookie?: any;
 }
 
 interface RequestDirective<T> {
-    header: RequestDirectiveHeader;
+    header: IRequestDirectiveHeader;
     payload: T;
-    endpoint?: RequestDirectiveEndpoint;
+    endpoint?: IRequestDirectiveEndpoint;
 }
 
-interface AlexaRequest<T> {
+interface IAlexaRequest<T> {
     directive: RequestDirective<T>;
 }
 
-interface Payload {}
+interface IPayload {}
 
-interface ErrorPayload extends Payload {
+interface IErrorPayload extends IPayload {
     type: string;
     message? : string;
 }
 
-interface DiscoveryRequestPayload extends Payload {
-    scope: Scope;
+interface IDiscoveryRequestPayload extends IPayload {
+    scope: IScope;
 }
 
-interface DiscoveryResponsePayload extends Payload {
+interface IDiscoveryResponsePayload extends IPayload {
     endpoints: IEndpoint[];
 }
 
-interface SpeakerRequestPayload extends Payload {
+interface ISpeakerRequestPayload extends IPayload {
     mute?: boolean;
     volume?: number;
     volumeDefault?: boolean;
 }
 
-interface AlexaEvent<T> {
-    header: RequestDirectiveHeader,
-    endpoint?: RequestDirectiveEndpoint,
+interface IAlexaEvent<T> {
+    header: IRequestDirectiveHeader,
+    endpoint?: IRequestDirectiveEndpoint,
     payload: T
 }
 
-interface AlexaResponse<T> {
-    event: AlexaEvent<T>
+interface IAlexaResponse<T> {
+    event: IAlexaEvent<T>
 }
 
 interface IAlexaCapability {
@@ -119,4 +119,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { Payload, IEndpoint, SpeakerEndpoint, IAlexaContext, AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload, SpeakerRequestPayload, ErrorPayload }
+export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IErrorPayload }

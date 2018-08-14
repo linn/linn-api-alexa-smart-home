@@ -1,10 +1,10 @@
 import PlaybackControlHandler from '../src/handlers/PlaybackControlHandler';
-import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
+import { IAlexaRequest, IAlexaResponse } from '../src/models/Alexa';
 import ILinnApiFacade, { InvalidDirectiveError } from '../src/facade/ILinnApiFacade';
 
 describe('PlaybackControlHandler', () => {
-    let alexaRequest : AlexaRequest<any>;
-    let alexaResponse : AlexaResponse<any>;
+    let alexaRequest : IAlexaRequest<any>;
+    let alexaResponse : IAlexaResponse<any>;
     let requestedDeviceId : string;
     let actionCalled : string;
     let requestedToken : string;
@@ -23,7 +23,7 @@ describe('PlaybackControlHandler', () => {
 
     let sut = new PlaybackControlHandler(fakeFacade);
 
-    function generateRequest(name : string) : AlexaRequest<any> {
+    function generateRequest(name : string) : IAlexaRequest<any> {
         return {
             "directive": {
                 "header": {

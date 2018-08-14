@@ -1,10 +1,10 @@
 import PowerControlHandler from '../src/handlers/PowerControlHandler';
-import { AlexaRequest, AlexaResponse } from '../src/models/Alexa';
+import { IAlexaRequest, IAlexaResponse } from '../src/models/Alexa';
 import ILinnApiFacade, { InvalidDirectiveError } from '../src/facade/ILinnApiFacade';
 
 describe('PowerControlHandler', () => {
-    let alexaRequest : AlexaRequest<any>;
-    let alexaResponse : AlexaResponse<any>;
+    let alexaRequest : IAlexaRequest<any>;
+    let alexaResponse : IAlexaResponse<any>;
     let requestedDeviceId : string;
     let requestedStandbyState : boolean;
     let requestedToken : string;
@@ -23,7 +23,7 @@ describe('PowerControlHandler', () => {
 
     let sut = new PowerControlHandler(fakeFacade);
 
-    function generateRequest(command : string) : AlexaRequest<any> {
+    function generateRequest(command : string) : IAlexaRequest<any> {
         return {
             "directive": {
                 "header": {

@@ -1,10 +1,10 @@
 import SpeakerControlHandler from '../src/handlers/SpeakerControlHandler';
-import { AlexaRequest, AlexaResponse, SpeakerRequestPayload } from '../src/models/Alexa';
+import { IAlexaRequest, IAlexaResponse, ISpeakerRequestPayload } from '../src/models/Alexa';
 import ILinnApiFacade, { InvalidDirectiveError, InvalidValueError } from '../src/facade/ILinnApiFacade';
 
 describe('SpeakerControl', () => {
-    let alexaRequest : AlexaRequest<any>;
-    let alexaResponse : AlexaResponse<any>;
+    let alexaRequest : IAlexaRequest<any>;
+    let alexaResponse : IAlexaResponse<any>;
     let requestedDeviceId : string;
     let requestedVolumeSteps : number;
     let requestedVolume : number;
@@ -25,7 +25,7 @@ describe('SpeakerControl', () => {
 
     let sut = new SpeakerControlHandler(fakeFacade);
 
-    function generateRequest<T>(command : string, payload : T) : AlexaRequest<T> {
+    function generateRequest<T>(command : string, payload : T) : IAlexaRequest<T> {
         return {
             "directive": {
                 "header": {
@@ -53,7 +53,7 @@ describe('SpeakerControl', () => {
             let volumeRequest = 11;
 
             beforeEach(async () => {
-                alexaRequest = generateRequest<SpeakerRequestPayload>("SetVolume", { volume: volumeRequest });
+                alexaRequest = generateRequest<ISpeakerRequestPayload>("SetVolume", { volume: volumeRequest });
                 alexaResponse = await sut.handle(alexaRequest);
             });
 
@@ -99,7 +99,7 @@ describe('SpeakerControl', () => {
             let volumeRequest = 20;
 
             beforeEach(async () => {
-                alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest });
+                alexaRequest = generateRequest<ISpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest });
                 alexaResponse = await sut.handle(alexaRequest);
             });
 
@@ -144,7 +144,7 @@ describe('SpeakerControl', () => {
         let volumeRequest = 10;
 
         beforeEach(async () => {
-            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
+            alexaRequest = generateRequest<ISpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
@@ -170,7 +170,7 @@ describe('SpeakerControl', () => {
         let volumeRequest = -10;
 
         beforeEach(async () => {
-            alexaRequest = generateRequest<SpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
+            alexaRequest = generateRequest<ISpeakerRequestPayload>("AdjustVolume", { volume: volumeRequest, volumeDefault: true });
             alexaResponse = await sut.handle(alexaRequest);
         });
 
@@ -196,7 +196,7 @@ describe('SpeakerControl', () => {
         let muteRequest = true;
 
         beforeEach(async () => {
-            alexaRequest = generateRequest<SpeakerRequestPayload>("SetMute", { mute: muteRequest });
+            alexaRequest = generateRequest<ISpeakerRequestPayload>("SetMute", { mute: muteRequest });
             alexaResponse = await sut.handle(alexaRequest);
         });
 

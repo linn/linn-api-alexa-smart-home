@@ -1,8 +1,8 @@
-import { AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../models/Alexa';
+import { IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload } from '../models/Alexa';
 import AlexaRequestHandler from './AlexaRequestHandler';
 
-class DiscoveryHandler extends AlexaRequestHandler<DiscoveryRequestPayload, DiscoveryResponsePayload> {
-    async handle(request: AlexaRequest<DiscoveryRequestPayload>) : Promise<AlexaResponse<DiscoveryResponsePayload>> {
+class DiscoveryHandler extends AlexaRequestHandler<IDiscoveryRequestPayload, IDiscoveryResponsePayload> {
+    async handle(request: IAlexaRequest<IDiscoveryRequestPayload>) : Promise<IAlexaResponse<IDiscoveryResponsePayload>> {
         if (request.directive.header.name === 'Discover') {
             let endpoints = await this.facade.list(request.directive.payload.scope.token);
 

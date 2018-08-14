@@ -1,11 +1,11 @@
 import DiscoveryHandler from '../src/handlers/DiscoveryHandler';
-import { AlexaRequest, AlexaResponse, DiscoveryResponsePayload, DiscoveryRequestPayload } from '../src/models/Alexa';
+import { IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload } from '../src/models/Alexa';
 import ILinnApiFacade from '../src/facade/ILinnApiFacade';
 import { SpeakerEndpoint, IEndpoint } from '../src/models/Alexa';
 
 describe('DiscoveryHandler', () => {
-    let alexaRequest : AlexaRequest<DiscoveryRequestPayload>;
-    let alexaResponse : AlexaResponse<DiscoveryResponsePayload>;
+    let alexaRequest : IAlexaRequest<IDiscoveryRequestPayload>;
+    let alexaResponse : IAlexaResponse<IDiscoveryResponsePayload>;
     let endpoints : IEndpoint[] = [ new SpeakerEndpoint("SPEAKER_ID", "SPEAKER_NAME", "SPEAKER_DESCRIPTION") ]
     let fakeFacade : ILinnApiFacade = {
         list: async (token : string) => { return endpoints; },

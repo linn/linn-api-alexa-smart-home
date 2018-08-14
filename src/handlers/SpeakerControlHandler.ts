@@ -1,4 +1,4 @@
-import { AlexaRequest, AlexaResponse, SpeakerRequestPayload } from '../models/Alexa';
+import { IAlexaRequest, IAlexaResponse, ISpeakerRequestPayload } from '../models/Alexa';
 import AlexaRequestHandler from './AlexaRequestHandler';
 import { InvalidDirectiveError, InvalidValueError } from '../facade/ILinnApiFacade';
 
@@ -11,7 +11,7 @@ function isNumber(value: string | number): boolean
 }
 
 class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
-    async handle(request: AlexaRequest<SpeakerRequestPayload>) : Promise<AlexaResponse<{}>> {
+    async handle(request: IAlexaRequest<ISpeakerRequestPayload>) : Promise<IAlexaResponse<{}>> {
         switch(request.directive.header.name) {
             case "AdjustVolume":
                 if (request.directive.payload.volumeDefault) {

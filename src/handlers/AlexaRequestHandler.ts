@@ -1,4 +1,4 @@
-import { AlexaRequest, AlexaResponse } from '../models/Alexa';
+import { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
 import ILinnApiFacade from '../facade/ILinnApiFacade';
 import IAlexaHandler from './IAlexaHandler';
 
@@ -6,15 +6,15 @@ abstract class AlexaRequestHandler<T,V> implements IAlexaHandler<T,V> {
     constructor(protected facade : ILinnApiFacade) {
     }
 
-    protected generateDiscoveryResponse(request : AlexaRequest<T>, payload : V) : AlexaResponse<V> {
+    protected generateDiscoveryResponse(request : IAlexaRequest<T>, payload : V) : IAlexaResponse<V> {
         return this._generateResponse(request, "Discover.Response", "Alexa.Discovery", payload);
     }
 
-    protected generateResponse(request : AlexaRequest<T>, payload : V) : AlexaResponse<V> {
+    protected generateResponse(request : IAlexaRequest<T>, payload : V) : IAlexaResponse<V> {
         return this._generateResponse(request, "Response", "Alexa", payload);
     }
 
-    private _generateResponse(request : AlexaRequest<T>, name: string, namespace: string, payload : V) : AlexaResponse<V> {
+    private _generateResponse(request : IAlexaRequest<T>, name: string, namespace: string, payload : V) : IAlexaResponse<V> {
         return {
             event: {
                 header: {
@@ -29,7 +29,7 @@ abstract class AlexaRequestHandler<T,V> implements IAlexaHandler<T,V> {
             }
         };
     }
-    abstract handle(request: AlexaRequest<T>) : Promise<AlexaResponse<V>>;
+    abstract handle(request: IAlexaRequest<T>) : Promise<IAlexaResponse<V>>;
 }
 
 export default AlexaRequestHandler;
