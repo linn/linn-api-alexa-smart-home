@@ -14,7 +14,7 @@ let handlers = {
 }
 
 async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {
-    log("Debug", "Request",  request);
+    log("Debug", "Request Directive",  { header: request.directive.header, endpointId: request.directive.endpoint.endpointId, payload: request.directive.payload });
 
     let Handler = handlers[request.directive.header.namespace];
     
@@ -23,9 +23,9 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
             let facade = new LinnApiFacade("https://api.linn.co.uk");
             let handler = new Handler(facade);
 
-            let response = await handler.handle(request);
+            let response : IAlexaResponse<any> = await handler.handle(request);
 
-            log("Debug", "Response", response);
+            log("Debug", "Response Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
 
             callback(null, response);
         } else {
@@ -35,7 +35,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
     catch (error) {
         let response = generateErrorResponse(request, error);
 
-        log("Debug", "Error Response", response);
+        log("Debug", "Response Error Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
 
         callback(null, response);
     }
