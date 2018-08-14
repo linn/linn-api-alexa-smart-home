@@ -14,7 +14,7 @@ let handlers = {
 }
 
 async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {
-    log("Debug", "Request Directive",  { header: request.directive.header, endpointId: request.directive.endpoint.endpointId, payload: request.directive.payload });
+    //log("Debug", "Request Directive",  { header: request.directive.header, endpointId: request.directive.endpoint.endpointId, payload: request.directive.payload });
 
     let Handler = handlers[request.directive.header.namespace];
     
@@ -25,7 +25,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
 
             let response : IAlexaResponse<any> = await handler.handle(request);
 
-            log("Debug", "Response Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
+            //log("Debug", "Response Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
 
             callback(null, response);
         } else {
@@ -35,7 +35,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
     catch (error) {
         let response = generateErrorResponse(request, error);
 
-        log("Debug", "Response Error Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
+        //log("Debug", "Response Error Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
 
         callback(null, response);
     }
