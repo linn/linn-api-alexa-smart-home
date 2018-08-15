@@ -14,7 +14,7 @@ let handlers = {
 }
 
 async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {
-    //log("Debug", "Request Directive",  { header: request.directive.header, endpointId: request.directive.endpoint.endpointId, payload: request.directive.payload });
+    log("Debug", "Request Directive", context, toRequestProperties(request));
 
     let Handler = handlers[request.directive.header.namespace];
     
@@ -25,7 +25,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
 
             let response : IAlexaResponse<any> = await handler.handle(request);
 
-            //log("Debug", "Response Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
+            log("Debug", "Response Event", context, toResponseProperties(response));
 
             callback(null, response);
         } else {
@@ -35,7 +35,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
     catch (error) {
         let response = generateErrorResponse(request, error);
 
-        //log("Debug", "Response Error Event",  { header: response.event.header, endpointId: response.event.endpoint.endpointId, payload: response.event.payload });
+        log("Debug", "Response Error Event", context, toResponseProperties(response));
 
         callback(null, response);
     }
@@ -73,11 +73,32 @@ function generateErrorResponse(request : IAlexaRequest<any>, error : Error) : IA
     }
 };
 
-function log(level: string, message: string, properties?: object) {
+function toResponseProperties(response : IAlexaResponse<any>) : any
+{
+    let logProperties = { header: response.event.header, payload: response.event.payload };
+
+    if (response.event.endpoint) {
+        logProperties["endPointId"] = response.event.endpoint.endpointId;
+    }
+}
+
+function toRequestProperties(request : IAlexaRequest<any>) : any
+{
+    let logProperties = { header: request.directive.header };
+
+    if (request.directive.endpoint) {
+        logProperties["endpointId"] = request.directive.endpoint.endpointId;
+        logProperties["payload"] = request.directive.payload;
+    }
+
+    return logProperties;
+}
+
+function log(level: string, message: string, context : IAlexaContext, properties?: object) {
     if (properties) {
-        console.log(`LOG Level: ${level} Message: ${message} Properties: ${JSON.stringify(properties)}`);
+        console.log(`LOG RequestId: ${context.awsRequestId} Level: ${level} Message: ${message} Properties: ${JSON.stringify(properties)}`);
     } else {
-        console.log(`LOG Level: ${level} Message: ${message}`);
+        console.log(`LOG RequestId: ${context.awsRequestId} Level: ${level} Message: ${message}`);
     }
 }
 

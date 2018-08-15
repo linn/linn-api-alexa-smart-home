@@ -1,5 +1,5 @@
 interface IAlexaContext {
-    getRemainingTimeInMillis(): number;
+    awsRequestId: string;
 }
 
 interface IRequestDirectiveHeader {
