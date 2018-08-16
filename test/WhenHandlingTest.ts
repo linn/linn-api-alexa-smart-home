@@ -5,7 +5,6 @@ import * as nock from 'nock';
 describe('Handler', () => {
     let alexaRequest : IAlexaRequest<any>;
     let alexaResponse : IAlexaResponse<any>;
-    let deviceApi : nock.Scope;
     let apiRoot = "https://api.linn.co.uk";
 
     beforeEach(() => {
@@ -14,7 +13,7 @@ describe('Handler', () => {
 
     describe('And a discovery handler runs', () => {
         beforeEach((done) => {
-            deviceApi = nock(apiRoot).get('/devices/').reply(200, [
+            nock(apiRoot).get('/devices/').reply(200, [
                 {
                   "id": "device0",
                   "serialNumber": "1001",
@@ -23,6 +22,24 @@ describe('Handler', () => {
                   "name": "Morning Room",
                   "links": [
                     { "rel": "player", "href": "/players/device0/" }
+                  ]
+                }
+            ]);
+            nock(apiRoot).get('/players/').reply(200, [
+                {
+                  "id": "device0",
+                  "name": "Morning Room",
+                  "sources": [
+                    { 
+                        "id": "HDMI 1", 
+                        "name": "Television", 
+                        "visible": true
+                    },
+                    { 
+                        "id": "Analog 1", 
+                        "name": "Analog 1", 
+                        "visible": false
+                    }
                   ]
                 }
             ]);
@@ -45,7 +62,7 @@ describe('Handler', () => {
 
     describe('And a request handler runs without error', () => {
         beforeEach((done) => {
-            deviceApi = nock(apiRoot).put('/players/device-001/play').reply(200);
+            nock(apiRoot).put('/players/device-001/play').reply(200);
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -65,7 +82,7 @@ describe('Handler', () => {
 
     describe('And a request handler fails due to a 401', () => {
         beforeEach((done) => {
-            deviceApi = nock(apiRoot).put('/players/device-001/play').reply(401);
+            nock(apiRoot).put('/players/device-001/play').reply(401);
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -89,33 +106,60 @@ describe('Handler', () => {
     });
 
     describe('And a request handler fails due to a 404', () => {
-        beforeEach((done) => {
-            deviceApi = nock(apiRoot).put('/players/device-001/play').reply(404);
-            alexaRequest = generateRequest("Play");
-            handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
-                if (error) {
-                    done(error);
-                } else {
-                    alexaResponse = result;
-                    done();
-                }
+        describe('caused by a device no longer being available', () => {
+            beforeEach((done) => {
+                nock(apiRoot).put('/players/device-001/play').reply(404, { error: 'ClientPlayerNotFoundException' });
+                alexaRequest = generateRequest("Play");
+                handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
+                    if (error) {
+                        done(error);
+                    } else {
+                        alexaResponse = result;
+                        done();
+                    }
+                });
+            });
+
+            it('Should set Alexa Error Response', () => {
+                expect(alexaResponse.event.header.namespace).toBe("Alexa");
+                expect(alexaResponse.event.header.name).toBe("ErrorResponse");
+                expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
+                expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+                expect(alexaResponse.event.header.payloadVersion).toBe("3");
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(alexaResponse.event.payload.type).toBe("NO_SUCH_ENDPOINT");
             });
         });
 
-        it('Should set Alexa Error Response', () => {
-            expect(alexaResponse.event.header.namespace).toBe("Alexa");
-            expect(alexaResponse.event.header.name).toBe("ErrorResponse");
-            expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
-            expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
-            expect(alexaResponse.event.header.payloadVersion).toBe("3");
-            expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
-            expect(alexaResponse.event.payload.type).toBe("NO_SUCH_ENDPOINT");
+        describe('caused by an invalid value', () => {
+            beforeEach((done) => {
+                nock(apiRoot).put('/players/device-001/play').reply(404, { error: 'PlaylistVersionDeletedException' });
+                alexaRequest = generateRequest("Play");
+                handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
+                    if (error) {
+                        done(error);
+                    } else {
+                        alexaResponse = result;
+                        done();
+                    }
+                });
+            });
+
+            it('Should set Alexa Error Response', () => {
+                expect(alexaResponse.event.header.namespace).toBe("Alexa");
+                expect(alexaResponse.event.header.name).toBe("ErrorResponse");
+                expect(alexaResponse.event.header.messageId).toBe(alexaRequest.directive.header.messageId + "-R");
+                expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+                expect(alexaResponse.event.header.payloadVersion).toBe("3");
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(alexaResponse.event.payload.type).toBe("INVALID_VALUE");
+            });
         });
     });
 
     describe('And a request handler fails due to a 504', () => {
         beforeEach((done) => {
-            deviceApi = nock(apiRoot).put('/players/device-001/play').reply(504);
+            nock(apiRoot).put('/players/device-001/play').reply(504);
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -140,7 +184,7 @@ describe('Handler', () => {
 
     describe('And a request handler fails due to a 400', () => {
         beforeEach((done) => {
-            deviceApi = nock(apiRoot).put('/players/device-001/play').reply(400);
+            nock(apiRoot).put('/players/device-001/play').reply(400);
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {

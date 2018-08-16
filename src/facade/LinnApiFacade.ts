@@ -1,17 +1,30 @@
-import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError } from "./ILinnApiFacade";
+import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidValueError } from "./ILinnApiFacade";
 import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
 import * as webRequest from 'web-request';
 
-interface AssociatedDevice {
+interface IAssociatedDeviceResource {
     id: string;
     serialNumber: string;
     category: string;
     model: string;
     name: string;
-    links: LinkResource[];
+    links: ILinkResource[];
 }
 
-interface LinkResource {
+interface IDeviceSourceResource {
+    id: string;
+    name: string;
+    visible: boolean;
+}
+
+interface IPlayerResource {
+    id: string;
+    name: string;
+    sources: IDeviceSourceResource[];
+    links: ILinkResource[];
+}
+
+interface ILinkResource {
     rel: string;
     href: string;
 }
@@ -30,9 +43,16 @@ class LinnApiFacade implements ILinnApiFacade {
     }
 
     async list(token : string): Promise<IEndpoint[]> {
-        let devices = await webRequest.json<AssociatedDevice[]>(`${this.apiRoot}/devices/`, headers(token));
-        
-        return devices.map(d => new SpeakerEndpoint(d.id, d.name, d.model));
+        let devicesPromise = webRequest.json<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, headers(token));
+        let playersPromise = webRequest.json<IPlayerResource[]>(`${this.apiRoot}/players/`, headers(token));
+
+        let devices = await devicesPromise;
+        let players = await playersPromise;
+
+        return devices.map(d => {
+            let player = players.find(p => p.id === d.id);
+            return new SpeakerEndpoint(d.id, d.name, d.model, player.sources.filter(s => s.visible));
+        });
     }
 
     async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
@@ -78,6 +98,10 @@ class LinnApiFacade implements ILinnApiFacade {
     async setVolume(deviceId : string, level : number, token : string) : Promise<void> {
         await apiPut(`${this.apiRoot}/players/${deviceId}/volume?level=${level}`, token);
     }
+
+    async setSource(deviceId : string, sourceId : string, token : string) : Promise<void> {
+        await apiPut(`${this.apiRoot}/players/${deviceId}/source?sourceId=${sourceId}`, token);
+    }
 }
 
 async function apiPut(uri : string, token : string) {
@@ -88,7 +112,12 @@ async function apiPut(uri : string, token : string) {
             case 403:
                 throw new InvalidAuthorizationCredentialError();
             case 404:
-                throw new NoSuchEndpointError();
+                let body = JSON.parse(response.content);
+                if (body.error === 'ClientPlayerNotFoundException' || body.error === 'ClientDeviceNotFoundException') {
+                    throw new NoSuchEndpointError();
+                } else {
+                    throw new InvalidValueError();
+                }
             case 504:
                 throw new EndpointUnreachableError();
             default:

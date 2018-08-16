@@ -46,6 +46,10 @@ interface IDiscoveryResponsePayload extends IPayload {
     endpoints: IEndpoint[];
 }
 
+interface IInputRequestPayload extends IPayload {
+    input: string;
+}
+
 interface ISpeakerRequestPayload extends IPayload {
     mute?: boolean;
     volume?: number;
@@ -66,7 +70,8 @@ interface IAlexaCapability {
     interface: string,
     version: string,
     type: string,
-    supportedOperations?: string[]
+    supportedOperations?: string[],
+    inputs?: ISource[],
 }
 
 class AlexaCapability implements IAlexaCapability {
@@ -94,6 +99,19 @@ class AlexaPlaybackController implements IAlexaCapability {
     supportedOperations = [ "Play", "Pause", "Stop", "Previous", "Next" ];
 }
 
+interface ISource {
+    name: string;
+}
+
+class AlexaInputController implements IAlexaCapability {
+    constructor(public inputs : ISource[])
+    {
+    }
+    interface = "Alexa.InputController";
+    type = "AlexaInterface";
+    version = "3";
+}
+
 interface IEndpoint {
     endpointId: string,
     friendlyName: string,
@@ -109,14 +127,15 @@ class SpeakerEndpoint implements IEndpoint {
     displayCategories = [ "SPEAKER" ];
     cookie = {};
     capabilities: IAlexaCapability[];
-    constructor(public endpointId: string, public friendlyName: string, public description: string) {
+    constructor(public endpointId: string, public friendlyName: string, public description: string, sources: ISource[]) {
         this.capabilities = [
             new AlexaCapability(),
             new AlexaPowerController(),
             new AlexaSpeaker(),
-            new AlexaPlaybackController()
+            new AlexaPlaybackController(),
+            new AlexaInputController(sources)
         ];
     }
 }
 
-export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IErrorPayload }
+export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IInputRequestPayload, IErrorPayload }

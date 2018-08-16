@@ -6,7 +6,7 @@ import { SpeakerEndpoint, IEndpoint } from '../src/models/Alexa';
 describe('DiscoveryHandler', () => {
     let alexaRequest : IAlexaRequest<IDiscoveryRequestPayload>;
     let alexaResponse : IAlexaResponse<IDiscoveryResponsePayload>;
-    let endpoints : IEndpoint[] = [ new SpeakerEndpoint("SPEAKER_ID", "SPEAKER_NAME", "SPEAKER_DESCRIPTION") ]
+    let endpoints : IEndpoint[] = [ new SpeakerEndpoint("SPEAKER_ID", "SPEAKER_NAME", "SPEAKER_DESCRIPTION", [ { name: "Television" }]) ]
     let fakeFacade : ILinnApiFacade = {
         list: async (token : string) => { return endpoints; },
         setStandby: async (deviceId : string, value : boolean, token : string) => { return null; },
@@ -17,7 +17,8 @@ describe('DiscoveryHandler', () => {
         prev: async (deviceId : string, token : string) => { return null; },
         setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
         adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; },
-        setVolume: async (deviceId : string, volume : number, token : string) => { return null; }
+        setVolume: async (deviceId : string, volume : number, token : string) => { return null; },
+        setSource: async (deviceId : string, input : string, token : string) => { return null; }
     }
 
     let sut = new DiscoveryHandler(fakeFacade);

@@ -1,5 +1,5 @@
 import LinnApiFacade from '../src/facade/LinnApiFacade';
-import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError } from "../src/facade/ILinnApiFacade";
+import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidValueError } from "../src/facade/ILinnApiFacade";
 import { IEndpoint } from '../src/models/Alexa';
 import * as nock from 'nock';
 
@@ -16,6 +16,7 @@ describe('LinnApiFacade', () => {
     describe('Listing Devices', () => {
         let token : string;
         let endpoints : IEndpoint[];
+        let playersApi : nock.Scope;
 
         beforeEach(async () => {
             token = "VALID_TOKEN";
@@ -33,10 +34,33 @@ describe('LinnApiFacade', () => {
                 }
             ]);
 
+            playersApi = nock(fakeApiRoot).get('/players/').reply(200, [
+                {
+                  "id": "device0",
+                  "name": "Morning Room",
+                  "sources": [
+                    {
+                        "id": "HDMI 1",
+                        "name": "Television",
+                        "visible": true
+                    },
+                    {
+                        "id": "Analog 1",
+                        "name": "Analog 1",
+                        "visible": false
+                    }
+                  ]
+                }
+            ]);
+
             endpoints = await sut.list(token);
         });
 
-        it('Should call API', () => {
+        it('Should call /devices/ API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });
+
+        it('Should call /players/ API', () => {
             expect(deviceApi.isDone()).toBeTruthy();
         });
 
@@ -46,10 +70,15 @@ describe('LinnApiFacade', () => {
             expect(endpoints[0].manufacturerName).toBe("Linn Products Ltd.");
             expect(endpoints[0].friendlyName).toBe("Morning Room");
             expect(endpoints[0].description).toBe("Akurate DSM");
-            expect(endpoints[0].capabilities).toHaveLength(4);
+            expect(endpoints[0].capabilities).toHaveLength(5);
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.PowerController")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.Speaker")).toBeTruthy();
+            let inputController = endpoints[0].capabilities.find(c => c.interface == "Alexa.InputController");
+            expect(inputController).toBeTruthy();
+            let inputs = inputController.inputs.map(s => s.name);
+            expect(inputs).toHaveLength(1);
+            expect(inputs[0]).toBe("Television");
             let playbackController = endpoints[0].capabilities.find(c => c.interface == "Alexa.PlaybackController");
             expect(playbackController).toBeTruthy();
             expect(playbackController.supportedOperations).toContain("Play");
@@ -258,6 +287,24 @@ describe('LinnApiFacade', () => {
         });    
     });
 
+    describe('When setting source', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/source?sourceId=television').reply(200);
+
+            await sut.setSource(deviceId, 'television', token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });
+    });
+
     describe('When the API returns status code 401', () => {
         let token : string;
         let deviceId : string;
@@ -307,26 +354,52 @@ describe('LinnApiFacade', () => {
     });
 
     describe('When the API returns status code 404', () => {
-        let token : string;
-        let deviceId : string;
-        let error : any;
-        
-        beforeEach(async () => {
-            token = "VALID_TOKEN";
-            deviceId = "device0";
+        describe('#ClientPlayerNotFoundException', () => {
+            let token : string;
+            let deviceId : string;
+            let error : any;
 
-            deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(404, { error: 'ClientPlayerNotFoundException' });
+            beforeEach(async () => {
+                token = "VALID_TOKEN";
+                deviceId = "device0";
 
-            try {
-                await sut.setVolume(deviceId, 11, token);
-            }
-            catch (e) {
-                error = e;
-            }
+                deviceApi = nock(fakeApiRoot).put('/players/device0/volume?level=11').reply(404, { error: 'ClientPlayerNotFoundException' });
+
+                try {
+                    await sut.setVolume(deviceId, 11, token);
+                }
+                catch (e) {
+                    error = e;
+                }
+            });
+
+            it('Should throw exception', async () => {
+                expect(error).toBeInstanceOf(NoSuchEndpointError);
+            });
         });
 
-        it('Should throw exception', async () => {
-            expect(error).toBeInstanceOf(NoSuchEndpointError);
+        describe('#ClientDeviceSourceNotFoundException', () => {
+            let token : string;
+            let deviceId : string;
+            let error : any;
+
+            beforeEach(async () => {
+                token = "VALID_TOKEN";
+                deviceId = "device0";
+
+                deviceApi = nock(fakeApiRoot).put('/players/device0/source?sourceId=unknown').reply(404, { error: 'ClientDeviceSourceNotFoundException' });
+
+                try {
+                    await sut.setSource(deviceId, "unknown", token);
+                }
+                catch (e) {
+                    error = e;
+                }
+            });
+
+            it('Should throw exception', async () => {
+                expect(error).toBeInstanceOf(InvalidValueError);
+            });
         });
     });
 

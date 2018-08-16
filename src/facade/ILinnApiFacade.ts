@@ -11,6 +11,7 @@ interface ILinnApiFacade {
     setMute(deviceId : string, value : boolean, token : string) : Promise<void>
     adjustVolume(deviceId : string, steps : number, token : string) : Promise<void>
     setVolume(deviceId : string, level : number, token : string) : Promise<void>
+    setSource(deviceId : string, sourceId : string, token : string) : Promise<void>
 }
 
 class InvalidValueError extends Error

@@ -5,12 +5,14 @@ import LinnApiFacade from './facade/LinnApiFacade';
 import PlaybackControlHandler from './handlers/PlaybackControlHandler';
 import SpeakerControlHandler from './handlers/SpeakerControlHandler';
 import { InvalidAuthorizationCredentialError, EndpointUnreachableError, NoSuchEndpointError, InvalidDirectiveError, InvalidValueError } from './facade/ILinnApiFacade';
+import InputControlHandler from './handlers/InputControlHandler';
 
 let handlers = {
     "Alexa.Discovery": DiscoveryHandler,
     "Alexa.PowerController": PowerControlHandler,
     "Alexa.PlaybackController": PlaybackControlHandler,
-    "Alexa.Speaker": SpeakerControlHandler
+    "Alexa.Speaker": SpeakerControlHandler,
+    "Alexa.InputController": InputControlHandler
 }
 
 async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : any) => void) {

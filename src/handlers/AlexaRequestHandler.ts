@@ -29,6 +29,7 @@ abstract class AlexaRequestHandler<T,V> implements IAlexaHandler<T,V> {
             }
         };
     }
+
     abstract handle(request: IAlexaRequest<T>) : Promise<IAlexaResponse<V>>;
 }
 
