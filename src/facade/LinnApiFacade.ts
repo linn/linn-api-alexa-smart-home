@@ -51,7 +51,8 @@ class LinnApiFacade implements ILinnApiFacade {
 
         return devices.map(d => {
             let player = players.find(p => p.id === d.id);
-            return new SpeakerEndpoint(d.id, d.name, d.model, player.sources.filter(s => s.visible));
+            let sources = player.sources.filter(s => s.visible).map(s => { return { name: s.name } });
+            return new SpeakerEndpoint(d.id, d.name, d.model, sources);
         });
     }
 
