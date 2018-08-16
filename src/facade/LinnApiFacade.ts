@@ -107,6 +107,20 @@ class LinnApiFacade implements ILinnApiFacade {
 
 async function apiPut(uri : string, token : string) {
     var response = await webRequest.put(uri, headers(token));
+    checkForErrors(response);
+}
+
+async function apiDelete(uri : string, token : string) {
+    var response = await webRequest.delete(uri, headers(token));
+    checkForErrors(response);
+}
+
+async function apiPost(uri : string, token : string) {
+    var response = await webRequest.post(uri, headers(token));
+    checkForErrors(response);
+}
+
+function checkForErrors(response : webRequest.Response<string>) {
     if (response.statusCode >= 400) {
         switch (response.statusCode) {
             case 401:
@@ -125,14 +139,6 @@ async function apiPut(uri : string, token : string) {
                 throw new EndpointInternalError();
         }
     }
-}
-
-async function apiDelete(uri : string, token : string) {
-    await webRequest.delete(uri, headers(token));
-}
-
-async function apiPost(uri : string, token : string) {
-    await webRequest.post(uri, headers(token));
 }
 
 export default LinnApiFacade

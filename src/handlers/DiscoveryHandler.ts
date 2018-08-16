@@ -6,7 +6,7 @@ class DiscoveryHandler extends AlexaRequestHandler<IDiscoveryRequestPayload, IDi
         if (request.directive.header.name === 'Discover') {
             let endpoints = await this.facade.list(request.directive.payload.scope.token);
 
-            return this.generateDiscoveryResponse(request, { endpoints: endpoints });
+            return this.generateDiscoveryResponse(request, { endpoints });
         }
     }
 }

@@ -1,4 +1,4 @@
-import { IAlexaRequest, IAlexaContext, IAlexaResponse, IErrorPayload } from './models/Alexa';
+import { IAlexaRequest, IAlexaContext, IAlexaResponse } from './models/Alexa';
 import { handleError, createHandler } from './handlers';
 import Logger from './Logger';
 
@@ -10,7 +10,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
     try {
         let handler = createHandler(request);
 
-        let response : IAlexaResponse<any> = await handler.handle(request);
+        let response = await handler.handle(request);
 
         logger.logResponse(response);
 
