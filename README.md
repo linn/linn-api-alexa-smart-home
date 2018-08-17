@@ -34,3 +34,7 @@ and
 ```bash
 docker run --env-file=.env deploy
 ```
+
+## Development References
+
+https://developer.amazon.com/docs/smarthome/smart-home-skill-api-message-reference.html
