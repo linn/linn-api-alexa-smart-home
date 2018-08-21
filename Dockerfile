@@ -17,4 +17,4 @@ COPY serverless.yml /app
 WORKDIR /app
 RUN npm install -g serverless
 ENTRYPOINT [ "serverless" ]
-CMD [ "deploy" ]
+CMD [ "deploy", "--force" ]
