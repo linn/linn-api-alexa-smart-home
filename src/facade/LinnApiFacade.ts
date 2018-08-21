@@ -103,6 +103,10 @@ class LinnApiFacade implements ILinnApiFacade {
     async setSource(deviceId : string, sourceId : string, token : string) : Promise<void> {
         await apiPut(`${this.apiRoot}/players/${deviceId}/source?sourceId=${sourceId}`, token);
     }
+
+    async invokeDevicePin(deviceId: string, pinId : number, token : string) : Promise<void> {
+        await apiPut(`${this.apiRoot}/players/${deviceId}/play?pinId=${pinId}`, token);
+    }
 }
 
 async function apiPut(uri : string, token : string) {

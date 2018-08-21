@@ -50,6 +50,14 @@ interface IInputRequestPayload extends IPayload {
     input: string;
 }
 
+interface IChannel {
+    number : string;
+}
+
+interface IChannelRequestPayload extends IPayload {
+    channel: IChannel;
+}
+
 interface ISpeakerRequestPayload extends IPayload {
     mute?: boolean;
     volume?: number;
@@ -99,6 +107,12 @@ class AlexaPlaybackController implements IAlexaCapability {
     supportedOperations = [ "Play", "Pause", "Stop", "Previous", "Next" ];
 }
 
+class AlexaChannelController implements IAlexaCapability {
+    interface = "Alexa.ChannelController";
+    type = "AlexaInterface";
+    version = "3";
+}
+
 interface ISource {
     name: string;
 }
@@ -133,9 +147,10 @@ class SpeakerEndpoint implements IEndpoint {
             new AlexaPowerController(),
             new AlexaSpeaker(),
             new AlexaPlaybackController(),
-            new AlexaInputController(sources)
+            new AlexaInputController(sources),
+            new AlexaChannelController()
         ];
     }
 }
 
-export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IInputRequestPayload, IErrorPayload }
+export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IInputRequestPayload, IChannelRequestPayload, IErrorPayload }

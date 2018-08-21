@@ -19,7 +19,8 @@ describe('PowerControlHandler', () => {
         setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
         adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; },
         setVolume: async (deviceId : string, volume : number, token : string) => { return null; },
-        setSource: async (deviceId : string, input : string, token : string) => { return null; }
+        setSource: async (deviceId : string, input : string, token : string) => { return null; },
+        invokeDevicePin: async (deviceId : string, pinId : number, token : string) => { return null; }
     }
 
     let sut = new PowerControlHandler(fakeFacade);

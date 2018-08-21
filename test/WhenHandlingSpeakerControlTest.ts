@@ -21,7 +21,8 @@ describe('SpeakerControl', () => {
         setMute: async (deviceId : string, value : boolean, token : string) => { requestedDeviceId = deviceId, requestedMuteSettings = value, requestedToken = token },
         adjustVolume: async (deviceId : string, steps : number, token : string) => { requestedDeviceId = deviceId, requestedVolumeSteps = steps, requestedToken = token },
         setVolume: async (deviceId : string, volume : number, token : string) => { requestedDeviceId = deviceId, requestedVolume = volume, requestedToken = token },
-        setSource: async (deviceId : string, input : string, token : string) => { return null; }
+        setSource: async (deviceId : string, input : string, token : string) => { return null; },
+        invokeDevicePin: async (deviceId : string, pinId : number, token : string) => { return null; }
     }
 
     let sut = new SpeakerControlHandler(fakeFacade);

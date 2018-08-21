@@ -70,10 +70,11 @@ describe('LinnApiFacade', () => {
             expect(endpoints[0].manufacturerName).toBe("Linn Products Ltd.");
             expect(endpoints[0].friendlyName).toBe("Morning Room");
             expect(endpoints[0].description).toBe("Akurate DSM");
-            expect(endpoints[0].capabilities).toHaveLength(5);
+            expect(endpoints[0].capabilities).toHaveLength(6);
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.PowerController")).toBeTruthy();
             expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.Speaker")).toBeTruthy();
+            expect(endpoints[0].capabilities.find(c => c.interface == "Alexa.ChannelController")).toBeTruthy();
             let inputController = endpoints[0].capabilities.find(c => c.interface == "Alexa.InputController");
             expect(inputController).toBeTruthy();
             let inputs = inputController.inputs.map(s => s.name);
@@ -298,6 +299,24 @@ describe('LinnApiFacade', () => {
             deviceApi = nock(fakeApiRoot).put('/players/device0/source?sourceId=television').reply(200);
 
             await sut.setSource(deviceId, 'television', token);
+        });
+
+        it('Should call API', () => {
+            expect(deviceApi.isDone()).toBeTruthy();
+        });
+    });
+
+    describe('When invoking device pin', () => {
+        let token : string;
+        let deviceId : string;
+
+        beforeEach(async () => {
+            token = "VALID_TOKEN";
+            deviceId = "device0";
+
+            deviceApi = nock(fakeApiRoot).put('/players/device0/play?pinId=3').reply(200);
+
+            await sut.invokeDevicePin(deviceId, 3, token);
         });
 
         it('Should call API', () => {

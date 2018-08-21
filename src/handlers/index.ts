@@ -3,6 +3,7 @@ import PowerControlHandler from './PowerControlHandler';
 import PlaybackControlHandler from './PlaybackControlHandler';
 import SpeakerControlHandler from './SpeakerControlHandler';
 import InputControlHandler from './InputControlHandler';
+import ChannelControlHandler from './ChannelControlHandler';
 
 import { IAlexaRequest, IAlexaResponse, IErrorPayload } from '../models/Alexa';
 import AlexaRequestHandler from './AlexaRequestHandler';
@@ -14,7 +15,8 @@ let handlers = {
     "Alexa.PowerController": PowerControlHandler,
     "Alexa.PlaybackController": PlaybackControlHandler,
     "Alexa.Speaker": SpeakerControlHandler,
-    "Alexa.InputController": InputControlHandler
+    "Alexa.InputController": InputControlHandler,
+    "Alexa.ChannelController": ChannelControlHandler
 }
 
 function createHandler(request : IAlexaRequest<any>) : AlexaRequestHandler<any, any>

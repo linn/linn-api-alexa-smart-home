@@ -8,10 +8,11 @@ describe('InputControlHandler', () => {
     let requestedDeviceId : string;
     let requestedSource : string;
     let requestedToken : string;
+    let requestedPlay : boolean;
     let fakeFacade : ILinnApiFacade = {
         list: async (token : string) => { return null; },
         setStandby: async (deviceId : string, value : boolean, token : string) => { return null; },
-        play: async (deviceId : string, token : string) => { return null; },
+        play: async (deviceId : string, token : string) => { requestedPlay = true },
         pause: async (deviceId : string, token : string) => { return null; },
         stop: async (deviceId : string, token : string) => { return null; },
         next: async (deviceId : string, token : string) => { return null; },
@@ -19,7 +20,8 @@ describe('InputControlHandler', () => {
         setMute: async (deviceId : string, value : boolean, token : string) => { return null; },
         adjustVolume: async (deviceId : string, steps : number, token : string) => { return null; },
         setVolume: async (deviceId : string, volume : number, token : string) => { return null; },
-        setSource: async (deviceId : string, input : string, token : string) => { requestedDeviceId = deviceId, requestedSource = input, requestedToken = token }
+        setSource: async (deviceId : string, input : string, token : string) => { requestedDeviceId = deviceId, requestedSource = input, requestedToken = token },
+        invokeDevicePin: async (deviceId : string, pinId : number, token : string) => { return null; }
     }
 
     let sut = new InputControlHandler(fakeFacade);
@@ -59,6 +61,10 @@ describe('InputControlHandler', () => {
             expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(requestedSource).toBe("Television");
             expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+        });
+
+        test('Should start playback', () => {
+            expect(requestedPlay).toBe(true);
         });
 
         test('Should respond with expected endpoints', () => {
