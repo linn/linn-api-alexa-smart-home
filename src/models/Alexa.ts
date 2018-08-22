@@ -94,6 +94,9 @@ interface IAlexaCapability {
     type: string,
     supportedOperations?: string[],
     inputs?: ISource[],
+    properties?: {
+        supported: { name: string }[]
+    }
 }
 
 class AlexaCapability implements IAlexaCapability {
@@ -125,6 +128,7 @@ class AlexaChannelController implements IAlexaCapability {
     interface = "Alexa.ChannelController";
     type = "AlexaInterface";
     version = "3";
+    properties = { supported: [ { name: "channel" } ] };
 }
 
 interface ISource {

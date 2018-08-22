@@ -38,7 +38,7 @@ function generateResponseContext(pinId: number) : IAlexaResponseContext {
         properties: [{
             name: "channel",
             namespace: "Alexa.ChannelController",
-            timeOfSample: new Date().toUTCString(),
+            timeOfSample: new Date().toISOString(),
             uncertaintyInMilliseconds: 0,
             value: {
                 number: `${pinId}`,
