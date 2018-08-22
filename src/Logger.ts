@@ -8,6 +8,10 @@ function toResponseProperties(response : IAlexaResponse<any>) : any
         logProperties["endPointId"] = response.event.endpoint.endpointId;
     }
 
+    if (response.context) {
+        logProperties["context"] = response.context;
+    }
+
     return logProperties;
 }
 
