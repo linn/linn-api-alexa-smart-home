@@ -25,7 +25,7 @@ describe('ChannelControlHandler', () => {
 
     let sut = new ChannelControlHandler(fakeFacade);
 
-    function generateRequest(directive : string, channelNumber : string) : IAlexaRequest<any> {
+    function generateNumberRequest(directive : string, channelNumber : string) : IAlexaRequest<any> {
         return {
             "directive": {
               "header": {
@@ -45,14 +45,34 @@ describe('ChannelControlHandler', () => {
               },
               "payload": {
                 "channel": {
-                    "number": channelNumber,
-                    "callSign": "TESTSTATION1",
-                    "affiliateCallSign": "TESTSTATION2",
-                    "uri": "someUrl"
+                    "number": channelNumber
+                }
+              }
+            }
+          };
+    }
+
+    function generateNameRequest(directive : string, channelNumber : string) : IAlexaRequest<any> {
+        return {
+            "directive": {
+              "header": {
+                "namespace": "Alexa.ChannelController",
+                "name": directive,
+                "messageId": "abc-123-def-456",
+                "correlationToken": "dFMb0z+PgpgdDmluhJ1LddFvSqZ/jCc8ptlAKulUj90jSqg==",
+                "payloadVersion": "3"
+              },
+              "endpoint": {
+                "scope": {
+                  "type": "BearerToken",
+                  "token": "access-token-from-skill"
                 },
+                "endpointId": "device-001",
+                "cookie": {}
+              },
+              "payload": {
                 "channelMetadata": {
-                    "name": "Alternate Channel Name",
-                    "image": "urlToImage"
+                    "name": `PIN ${channelNumber}`
                 }
               }
             }
@@ -60,9 +80,9 @@ describe('ChannelControlHandler', () => {
     }
 
     describe('#ChangeChannel', () => {
-        describe('for pin 3', () => {
+        describe('for pin 3 by number', () => {
             beforeEach(async () => {
-                alexaRequest = generateRequest("ChangeChannel", "3");
+                alexaRequest = generateNumberRequest("ChangeChannel", "3");
                 alexaResponse = await sut.handle(alexaRequest);
             });
 
@@ -72,7 +92,7 @@ describe('ChannelControlHandler', () => {
                 expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
             });
 
-            test('Should respond with expected endpoints', () => {
+            test('Should respond correctly', () => {
                 expect(alexaResponse.event.header.name).toBe("Response");
                 expect(alexaResponse.event.header.namespace).toBe("Alexa");
                 expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
@@ -80,25 +100,84 @@ describe('ChannelControlHandler', () => {
                 expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
                 expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
                 expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
-                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId)
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(alexaResponse.context.properties).toHaveLength(1);
+                expect(alexaResponse.context.properties[0].namespace).toBe("Alexa.ChannelController");
+                expect(alexaResponse.context.properties[0].name).toBe("channel");
+                expect(alexaResponse.context.properties[0].timeOfSample).toBeTruthy();
+                expect(alexaResponse.context.properties[0].uncertaintyInMilliseconds).toBe(0);
+                expect(alexaResponse.context.properties[0].value.number).toBe("3");
+                expect(alexaResponse.context.properties[0].value.callSign).toBe("PIN 3");
+                expect(alexaResponse.context.properties[0].value.affiliateCallSign).toBe("PIN 3");
+            });
+        });
+
+        describe('for pin 3 by name', () => {
+            beforeEach(async () => {
+                alexaRequest = generateNameRequest("ChangeChannel", "PIN 3");
+                alexaResponse = await sut.handle(alexaRequest);
+            });
+
+            test('Should invoke facade', () => {
+                expect(requestedDeviceId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(requestedPinId).toBe(3);
+                expect(requestedToken).toBe(alexaRequest.directive.endpoint.scope.token);
+            });
+
+            test('Should respond correctly', () => {
+                expect(alexaResponse.event.header.name).toBe("Response");
+                expect(alexaResponse.event.header.namespace).toBe("Alexa");
+                expect(alexaResponse.event.header.correlationToken).toBe(alexaRequest.directive.header.correlationToken);
+                expect(alexaResponse.event.header.payloadVersion).toBe("3");
+                expect(alexaResponse.event.header.messageId).toBe(`${alexaRequest.directive.header.messageId}-R`);
+                expect(alexaResponse.event.endpoint.scope.type).toBe(alexaRequest.directive.endpoint.scope.type);
+                expect(alexaResponse.event.endpoint.scope.token).toBe(alexaRequest.directive.endpoint.scope.token);
+                expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
+                expect(alexaResponse.context.properties).toHaveLength(1);
+                expect(alexaResponse.context.properties[0].namespace).toBe("Alexa.ChannelController");
+                expect(alexaResponse.context.properties[0].name).toBe("channel");
+                expect(alexaResponse.context.properties[0].timeOfSample).toBeTruthy();
+                expect(alexaResponse.context.properties[0].uncertaintyInMilliseconds).toBe(0);
+                expect(alexaResponse.context.properties[0].value.number).toBe("3");
+                expect(alexaResponse.context.properties[0].value.callSign).toBe("PIN 3");
+                expect(alexaResponse.context.properties[0].value.affiliateCallSign).toBe("PIN 3");
             });
         });
 
         describe('for invalid pin', () => {
-            let thrownError : Error;
+            describe('for pin 3 by number', () => {
+                let thrownError : Error;
 
-            beforeEach(async () => {
-                alexaRequest = generateRequest("ChangeChannel", "invalid");
-                try {
-                    await sut.handle(alexaRequest);
-                } catch (e) {
-                    thrownError = e;
-                }
+                beforeEach(async () => {
+                    alexaRequest = generateNumberRequest("ChangeChannel", "invalid");
+                    try {
+                        await sut.handle(alexaRequest);
+                    } catch (e) {
+                        thrownError = e;
+                    }
+                });
+
+                test('Should throw error', () => {
+                    expect(thrownError).toBeDefined();
+                    expect(thrownError).toBeInstanceOf(InvalidValueError);
+                });
             });
+            describe('for pin 3 by name', () => {
+                let thrownError : Error;
 
-            test('Should throw error', () => {
-                expect(thrownError).toBeDefined();
-                expect(thrownError).toBeInstanceOf(InvalidValueError);
+                beforeEach(async () => {
+                    alexaRequest = generateNameRequest("ChangeChannel", "invalid");
+                    try {
+                        await sut.handle(alexaRequest);
+                    } catch (e) {
+                        thrownError = e;
+                    }
+                });
+
+                test('Should throw error', () => {
+                    expect(thrownError).toBeDefined();
+                    expect(thrownError).toBeInstanceOf(InvalidValueError);
+                });
             });
         });
     });
@@ -106,7 +185,7 @@ describe('ChannelControlHandler', () => {
     describe('#Invalid', () => {
         let thrownError : Error;
         beforeEach(async () => {
-            alexaRequest = generateRequest("Invalid", "hdmi1");
+            alexaRequest = generateNumberRequest("Invalid", "hdmi1");
             try {
                 await sut.handle(alexaRequest);
             } catch (e) {

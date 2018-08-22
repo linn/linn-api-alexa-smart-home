@@ -50,13 +50,14 @@ interface IInputRequestPayload extends IPayload {
     input: string;
 }
 
-interface IChannel {
-    number : string;
-}
-
 interface IChannelRequestPayload extends IPayload {
-    channel: IChannel;
-}
+    channel?: {
+        number : string;
+        callSign?: string;
+    },
+    channelMetadata?: {
+        name: string;
+    }}
 
 interface ISpeakerRequestPayload extends IPayload {
     mute?: boolean;
@@ -70,7 +71,20 @@ interface IAlexaEvent<T> {
     payload: T
 }
 
+interface IAlexaResponseContext {
+    properties: IAlexaResponseContextProperty[],
+}
+
+interface IAlexaResponseContextProperty {
+    namespace: string,
+    name: string,
+    value: any,
+    timeOfSample: string,
+    uncertaintyInMilliseconds: number
+}
+
 interface IAlexaResponse<T> {
+    context?: IAlexaResponseContext,
     event: IAlexaEvent<T>
 }
 
@@ -153,4 +167,4 @@ class SpeakerEndpoint implements IEndpoint {
     }
 }
 
-export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IInputRequestPayload, IChannelRequestPayload, IErrorPayload }
+export { IPayload, IEndpoint, SpeakerEndpoint, IAlexaContext, IAlexaRequest, IAlexaResponse, IAlexaResponseContext, IDiscoveryResponsePayload, IDiscoveryRequestPayload, ISpeakerRequestPayload, IInputRequestPayload, IChannelRequestPayload, IErrorPayload }
