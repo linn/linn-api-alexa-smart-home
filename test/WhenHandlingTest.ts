@@ -82,7 +82,7 @@ describe('Handler', () => {
 
     describe('And a request handler fails due to a 401', () => {
         beforeEach((done) => {
-            nock(apiRoot).put('/players/device-001/play').reply(401, { error: 'Error' });
+            nock(apiRoot).put('/players/device-001/play').reply(401);
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -129,7 +129,7 @@ describe('Handler', () => {
                 expect(alexaResponse.event.header.payloadVersion).toBe("3");
                 expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
                 expect(alexaResponse.event.payload.type).toBe("NO_SUCH_ENDPOINT");
-                expect(alexaResponse.event.payload.message).toBeTruthy();
+                expect(alexaResponse.event.payload.message).toContain("ClientPlayerNotFoundException");
             });
         });
 

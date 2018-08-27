@@ -126,23 +126,29 @@ async function apiPost(uri : string, token : string) {
 
 function checkForErrors(response : webRequest.Response<string>) {
     if (response.statusCode >= 400) {
-        let body = JSON.parse(response.content);
+        let body : { error : string } = response.content ? JSON.parse(response.content) : null;
         switch (response.statusCode) {
             case 401:
             case 403:
-                throw new InvalidAuthorizationCredentialError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
+                throw new InvalidAuthorizationCredentialError(generateErrorMessage(body, response.statusCode));
             case 404:
                 if (body.error === 'ClientPlayerNotFoundException' || body.error === 'ClientDeviceNotFoundException') {
-                    throw new NoSuchEndpointError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
+                    throw new NoSuchEndpointError(generateErrorMessage(body, response.statusCode));
                 } else {
-                    throw new InvalidValueError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
+                    throw new InvalidValueError(generateErrorMessage(body, response.statusCode));
                 }
             case 504:
-                throw new EndpointUnreachableError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
+                throw new EndpointUnreachableError(generateErrorMessage(body, response.statusCode));
             default:
-                throw new EndpointInternalError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
+                throw new EndpointInternalError(generateErrorMessage(body, response.statusCode));
         }
     }
+}
+
+function generateErrorMessage(body : { error : string }, statusCode : number) : string {
+    return body && body.error 
+        ? `Linn API Error: ${body.error}, Status Code: ${statusCode}`
+        : `Linn API Error: Status Code: ${statusCode}`
 }
 
 export default LinnApiFacade
