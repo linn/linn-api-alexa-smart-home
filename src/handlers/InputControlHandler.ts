@@ -10,7 +10,7 @@ class InputControlHandler extends AlexaRequestHandler<{}, {}> {
                 await this.facade.play(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
             default:
-                throw new InvalidDirectiveError();
+                throw new InvalidDirectiveError(`Unsupported operation: ${request.directive.header.name}`);
         }
 
         return this.generateResponse(request, {});

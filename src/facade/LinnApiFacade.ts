@@ -126,21 +126,21 @@ async function apiPost(uri : string, token : string) {
 
 function checkForErrors(response : webRequest.Response<string>) {
     if (response.statusCode >= 400) {
+        let body = JSON.parse(response.content);
         switch (response.statusCode) {
             case 401:
             case 403:
-                throw new InvalidAuthorizationCredentialError();
+                throw new InvalidAuthorizationCredentialError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
             case 404:
-                let body = JSON.parse(response.content);
                 if (body.error === 'ClientPlayerNotFoundException' || body.error === 'ClientDeviceNotFoundException') {
-                    throw new NoSuchEndpointError();
+                    throw new NoSuchEndpointError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
                 } else {
-                    throw new InvalidValueError();
+                    throw new InvalidValueError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
                 }
             case 504:
-                throw new EndpointUnreachableError();
+                throw new EndpointUnreachableError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
             default:
-                throw new EndpointInternalError();
+                throw new EndpointInternalError(`Linn API Error: ${body.message}, Status Code: ${response.statusCode}`);
         }
     }
 }

@@ -35,7 +35,7 @@ interface IPayload {}
 
 interface IErrorPayload extends IPayload {
     type: string;
-    message? : string;
+    message : string;
 }
 
 interface IDiscoveryRequestPayload extends IPayload {

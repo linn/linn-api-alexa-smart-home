@@ -27,7 +27,7 @@ function createHandler(request : IAlexaRequest<any>) : AlexaRequestHandler<any, 
         let facade = new LinnApiFacade("https://api.linn.co.uk");
         return new Handler(facade);
     } else {
-        throw new InvalidDirectiveError();
+        throw new InvalidDirectiveError(`No handler for ${request.directive.header.namespace}`);;
     }
 }
 
@@ -57,7 +57,8 @@ function handleError(request : IAlexaRequest<any>, error : Error) : IAlexaRespon
             },
             endpoint: request.directive.endpoint,
             payload: {
-                type: errorType
+                type: errorType,
+                message: error.message
             }
         }
     }

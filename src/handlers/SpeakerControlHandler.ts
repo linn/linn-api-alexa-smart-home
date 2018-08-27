@@ -22,7 +22,7 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
                     }
                 } else {
                     if (!isNumber(request.directive.payload.volume)) {
-                        throw new InvalidValueError();
+                        throw new InvalidValueError(`Volume must be a number: ${request.directive.payload.volume}`);
                     }
                     await this.facade.adjustVolume(request.directive.endpoint.endpointId, request.directive.payload.volume, request.directive.endpoint.scope.token);
                 }
@@ -32,12 +32,12 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
                 break;
             case "SetVolume":
                 if (!isNumber(request.directive.payload.volume)) {
-                    throw new InvalidValueError();
+                    throw new InvalidValueError(`Volume must be a number: ${request.directive.payload.volume}`);
                 }
                 await this.facade.setVolume(request.directive.endpoint.endpointId, request.directive.payload.volume, request.directive.endpoint.scope.token);
                 break;
             default:
-                throw new InvalidDirectiveError();
+                throw new InvalidDirectiveError(`Unsupported operation: ${request.directive.header.name}`);
         }
 
         return this.generateResponse(request, {});

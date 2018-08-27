@@ -12,7 +12,7 @@ class PowerControlHandler extends AlexaRequestHandler<{}, {}> {
                 await this.facade.setStandby(request.directive.endpoint.endpointId, true, request.directive.endpoint.scope.token);
                 break;
             default:
-                throw new InvalidDirectiveError();
+                throw new InvalidDirectiveError(`Unsupported operation: ${request.directive.header.name}`);
         }
 
         return this.generateResponse(request, {});

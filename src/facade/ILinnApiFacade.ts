@@ -17,8 +17,8 @@ interface ILinnApiFacade {
 
 class InvalidValueError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, InvalidValueError.prototype);
@@ -27,8 +27,8 @@ class InvalidValueError extends Error
 
 class InvalidDirectiveError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, InvalidDirectiveError.prototype);
@@ -37,8 +37,8 @@ class InvalidDirectiveError extends Error
 
 class InvalidAuthorizationCredentialError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, InvalidAuthorizationCredentialError.prototype);
@@ -47,8 +47,8 @@ class InvalidAuthorizationCredentialError extends Error
 
 class NoSuchEndpointError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, NoSuchEndpointError.prototype);
@@ -57,8 +57,8 @@ class NoSuchEndpointError extends Error
 
 class EndpointUnreachableError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, EndpointUnreachableError.prototype);
@@ -67,8 +67,8 @@ class EndpointUnreachableError extends Error
 
 class EndpointInternalError extends Error
 {
-    constructor() {
-        super();
+    constructor(message : string) {
+        super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, EndpointInternalError.prototype);

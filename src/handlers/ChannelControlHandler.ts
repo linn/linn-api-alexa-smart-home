@@ -20,14 +20,14 @@ class ChannelControlHandler extends AlexaRequestHandler<{}, {}> {
                 }
 
                 if (isNaN(pinId)) {
-                    throw new InvalidValueError();
+                    throw new InvalidValueError(`Invalid PIN: ${pinId}`);
                 }
 
                 await this.facade.invokeDevicePin(request.directive.endpoint.endpointId, pinId, request.directive.endpoint.scope.token);
 
                 return this.generateResponse(request, {}, generateResponseContext(pinId));
             default:
-                throw new InvalidDirectiveError();
+                throw new InvalidDirectiveError(`Unsupported operation: ${request.directive.header.name}`);
         }
 
     }

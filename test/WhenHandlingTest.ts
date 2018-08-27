@@ -82,7 +82,7 @@ describe('Handler', () => {
 
     describe('And a request handler fails due to a 401', () => {
         beforeEach((done) => {
-            nock(apiRoot).put('/players/device-001/play').reply(401);
+            nock(apiRoot).put('/players/device-001/play').reply(401, { error: 'Error' });
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -102,6 +102,7 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("INVALID_AUTHORIZATION_CREDENTIAL");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 
@@ -128,6 +129,7 @@ describe('Handler', () => {
                 expect(alexaResponse.event.header.payloadVersion).toBe("3");
                 expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
                 expect(alexaResponse.event.payload.type).toBe("NO_SUCH_ENDPOINT");
+                expect(alexaResponse.event.payload.message).toBeTruthy();
             });
         });
 
@@ -153,13 +155,14 @@ describe('Handler', () => {
                 expect(alexaResponse.event.header.payloadVersion).toBe("3");
                 expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
                 expect(alexaResponse.event.payload.type).toBe("INVALID_VALUE");
+                expect(alexaResponse.event.payload.message).toBeTruthy();
             });
         });
     });
 
     describe('And a request handler fails due to a 504', () => {
         beforeEach((done) => {
-            nock(apiRoot).put('/players/device-001/play').reply(504);
+            nock(apiRoot).put('/players/device-001/play').reply(504, { error: 'Error' });
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -179,12 +182,13 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("ENDPOINT_UNREACHABLE");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 
     describe('And a request handler fails due to a 400', () => {
         beforeEach((done) => {
-            nock(apiRoot).put('/players/device-001/play').reply(400);
+            nock(apiRoot).put('/players/device-001/play').reply(400, { error: 'Error' });
             alexaRequest = generateRequest("Play");
             handler(alexaRequest, { awsRequestId: 'test' }, (error, result) => {
                 if (error) {
@@ -204,6 +208,7 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("INTERNAL_ERROR");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 
@@ -228,6 +233,7 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("INVALID_DIRECTIVE");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 
@@ -252,6 +258,7 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("INVALID_DIRECTIVE");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 
@@ -276,6 +283,7 @@ describe('Handler', () => {
             expect(alexaResponse.event.header.payloadVersion).toBe("3");
             expect(alexaResponse.event.endpoint.endpointId).toBe(alexaRequest.directive.endpoint.endpointId);
             expect(alexaResponse.event.payload.type).toBe("INVALID_VALUE");
+            expect(alexaResponse.event.payload.message).toBeTruthy();
         });
     });
 });
