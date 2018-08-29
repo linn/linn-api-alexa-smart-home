@@ -15,6 +15,10 @@ class InputControlHandler extends AlexaRequestHandler<{}, {}> {
 
         return this.generateResponse(request, {});
     }
+
+    token(request: IAlexaRequest<IInputRequestPayload>) : string {
+        return request.directive.endpoint.scope.token;
+    }
 }
 
 export default InputControlHandler;

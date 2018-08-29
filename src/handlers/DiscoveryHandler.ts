@@ -9,6 +9,10 @@ class DiscoveryHandler extends AlexaRequestHandler<IDiscoveryRequestPayload, IDi
             return this.generateDiscoveryResponse(request, { endpoints });
         }
     }
+
+    token(request: IAlexaRequest<IDiscoveryRequestPayload>) : string {
+        return request.directive.payload.scope.token;
+    }
 }
 
 export default DiscoveryHandler;

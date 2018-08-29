@@ -42,6 +42,10 @@ class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {
 
         return this.generateResponse(request, {});
     }
+
+    token(request: IAlexaRequest<ISpeakerRequestPayload>) : string {
+        return request.directive.endpoint.scope.token;
+    }
 }
 
 export default SpeakerControlHandler;

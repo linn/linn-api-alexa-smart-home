@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "jwt-decode": "^2.2.0",
     "web-request": "^1.0.7"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
 import { IAlexaResponse, IAlexaRequest, IAlexaContext } from "./models/Alexa";
 
-function toResponseProperties(response : IAlexaResponse<any>) : any
+function toResponseProperties(response : IAlexaResponse<any>, accountId : string) : any
 {
-    let logProperties = { header: response.event.header, payload: response.event.payload };
+    let logProperties = { header: response.event.header, payload: response.event.payload, accountId };
 
     if (response.event.endpoint) {
         logProperties["endPointId"] = response.event.endpoint.endpointId;
@@ -41,10 +41,10 @@ export default class {
     logRequest(request : IAlexaRequest<any>) {
         log("Debug", "Request Directive", this.context.awsRequestId, toRequestProperties(request));
     }
-    logResponse(response : IAlexaResponse<any>) {
-        log("Debug", "Response Event", this.context.awsRequestId, toResponseProperties(response));
+    logResponse(response : IAlexaResponse<any>, accountId : string) {
+        log("Debug", "Response Event", this.context.awsRequestId, toResponseProperties(response, accountId));
     }
-    logError(response : IAlexaResponse<any>) {
-        log("Debug", "Response Error Event", this.context.awsRequestId, toResponseProperties(response));
+    logError(response : IAlexaResponse<any>, accountId : string) {
+        log("Debug", "Response Error Event", this.context.awsRequestId, toResponseProperties(response, accountId));
     }
 }

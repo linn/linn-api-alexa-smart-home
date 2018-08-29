@@ -29,7 +29,10 @@ class ChannelControlHandler extends AlexaRequestHandler<{}, {}> {
             default:
                 throw new InvalidDirectiveError(`Unsupported operation: ${request.directive.header.name}`);
         }
+    }
 
+    token(request: IAlexaRequest<IChannelRequestPayload>) : string {
+        return request.directive.endpoint.scope.token;
     }
 }
 

@@ -34,7 +34,7 @@ function createHandler(request : IAlexaRequest<any>) : AlexaRequestHandler<any, 
 function handleError(request : IAlexaRequest<any>, error : Error) : IAlexaResponse<IErrorPayload> {
     let errorType : string = "INTERNAL_ERROR";
 
-    if (error instanceof InvalidAuthorizationCredentialError) {
+    if (error.name == "InvalidTokenError" || error instanceof InvalidAuthorizationCredentialError) {
         errorType = "INVALID_AUTHORIZATION_CREDENTIAL";
     } else if (error instanceof EndpointUnreachableError) {
         errorType = "ENDPOINT_UNREACHABLE";

@@ -26,6 +26,10 @@ class PlaybackControlHandler extends AlexaRequestHandler<{}, {}> {
 
         return this.generateResponse(request, {});
     }
+
+    token(request: IAlexaRequest<{}>) : string {
+        return request.directive.endpoint.scope.token;
+    }
 }
 
 export default PlaybackControlHandler;
