@@ -49,11 +49,21 @@ class LinnApiFacade implements ILinnApiFacade {
         let devices = await devicesPromise;
         let players = await playersPromise;
 
-        return devices.map(d => {
-            let player = players.find(p => p.id === d.id);
-            let sources = player.sources.filter(s => s.visible).map(s => { return { name: s.name } });
-            return new SpeakerEndpoint(d.id, d.name, d.model, sources);
-        });
+        return devices
+          .map((d) => {
+            let player = players.find((p) => p.id === d.id);
+            if (player) {
+              let playerSources = player.sources || [];
+              let sources = playerSources
+                .filter((s) => s.visible)
+                .map((s) => {
+                  return { name: s.name };
+                });
+              return new SpeakerEndpoint(d.id, d.name, d.model, sources);
+            }
+            return null;
+          })
+          .filter((x) => x !== null);
     }
 
     async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
