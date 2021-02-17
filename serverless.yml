@@ -15,7 +15,7 @@ functions:
   alexaSmartHome:
     handler: lib/js/Handler.handler
     description: Alexa Smart Home Skill Backend
-    runtime: nodejs8.10
+    runtime: nodejs14.15
     timeout: 7
     memorySize: 128
     events:
