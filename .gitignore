@@ -36,3 +36,9 @@ launchSettings.json
 __pycache__
 api/index.html
 ,serverless
+
+# Agent tool scratch — per-user, never committed (linn/linn-api-development#394)
+.serena/
+.chunkhound/
+.chunkhound.json
+.cache/
