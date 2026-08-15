@@ -7,11 +7,13 @@ Description: Alexa Smart Home skill backend - the Lambda the skill invokes, its 
 # repointed in the Alexa developer console.
 #
 # So the function name below is PINNED to the name Serverless generated (service-stage-functionKey),
-# and the logical id is pinned to the one Serverless used, so that deploying this template to the
-# EXISTING stack updates the function in place rather than replacing it. Both must be confirmed
-# against `aws cloudformation describe-stack-resources` before the first deploy: if the logical id is
-# wrong CloudFormation tries to create a second function with a name that is already taken, which
-# fails and rolls back - safe, but a wasted cycle.
+# and every logical id is pinned to the one Serverless used, so that deploying this template to the
+# EXISTING stack (linn-api-alexa-smart-home-production) updates in place rather than replacing.
+# Verified against describe-stack-resources on 2026-08-15.
+#
+# The AWS::Lambda::Version that Serverless also created is deliberately NOT reproduced here, so the
+# update removes it. That is safe: the skill's invoke permission names the UNQUALIFIED function ARN,
+# so Alexa calls $LATEST and has never resolved a pinned version.
 
 Parameters:
   environment:
@@ -32,6 +34,9 @@ Parameters:
     Type: String
     Description: The Linn API this skill controls devices through.
 
+Conditions:
+  IsInheritedFromServerless: !Equals [!Ref stage, production]
+
 Resources:
   # Logical id kept as Serverless generated it, so this is an in-place update of the existing
   # function rather than a create-and-replace. See the header.
@@ -44,7 +49,7 @@ Resources:
       Handler: dist/Handler.handler
       Timeout: 7
       MemorySize: 128
-      Role: !GetAtt AlexaSmartHomeRole.Arn
+      Role: !GetAtt IamRoleLambdaExecution.Arn
       Code:
         S3Bucket: !Ref codeBucket
         S3Key: !Ref codeKey
@@ -62,9 +67,13 @@ Resources:
       LogGroupName: !Sub /aws/lambda/linn-api-alexa-smart-home-${stage}-alexaSmartHome
       RetentionInDays: 7
 
-  AlexaSmartHomeRole:
+  # Logical id and role name both kept as Serverless generated them, so this updates the existing role
+  # in place. Renaming either would replace it - harmless here, but replacement for no reason is how a
+  # migration acquires risk it did not need.
+  IamRoleLambdaExecution:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub linn-api-alexa-smart-home-${stage}-${AWS::Region}-lambdaRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -87,13 +96,29 @@ Resources:
 
   # The other half of the binding: the skill holds our ARN, and this holds the skill's id. Without
   # EventSourceToken any Alexa skill in the world could invoke this function.
-  AlexaSmartHomePermission:
+  AlexaSmartHomeLambdaPermissionAlexaSmartHome1:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt AlexaSmartHomeLambdaFunction.Arn
       Principal: alexa-connectedhome.amazon.com
       EventSourceToken: !Ref alexaSkillId
+
+  # INHERITED FROM THE SERVERLESS DEPLOYMENT, AND DELIBERATELY STILL HERE.
+  #
+  # Serverless created this bucket inside this stack and filled it with past deployment packages.
+  # Dropping it from the template would make CloudFormation try to delete it, and a non-empty bucket
+  # CANNOT be deleted - the delete fails and the whole stack update rolls back. So it stays, retained,
+  # until someone empties it by hand; removing it from the template after that is then a no-op on the
+  # physical bucket precisely because of the retention policies.
+  #
+  # It is not used: deployment packages go to the bucket in persistence.yml. Condition-guarded so that
+  # sys, which has no such inheritance, does not grow one.
+  ServerlessDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsInheritedFromServerless
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
 
 Outputs:
   FunctionArn:
