@@ -46,7 +46,16 @@ function headers(token : string) {
 
 async function apiJson<T>(uri : string, token : string) : Promise<T> {
     let response = await fetch(uri, { headers: headers(token) });
-    return await response.json() as T;
+    let content = await response.text();
+
+    // Checked before parsing, so that a failure on the listing endpoints maps to the same Alexa error
+    // as a failure anywhere else. Without this a 401 while discovering devices reaches Alexa as
+    // INTERNAL_ERROR - the response body is not the array the caller expects, so mapping over it
+    // throws - and the customer is told something went wrong rather than being asked to re-link
+    // their account, which is the only action that would fix it.
+    checkForErrors({ statusCode: response.status, content: content.length > 0 ? content : null });
+
+    return JSON.parse(content) as T;
 }
 
 async function apiRequest(method : string, uri : string, token : string) : Promise<IApiResponse> {
@@ -60,11 +69,14 @@ class LinnApiFacade implements ILinnApiFacade {
     }
 
     async list(token : string): Promise<IEndpoint[]> {
-        let devicesPromise = apiJson<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, token);
-        let playersPromise = apiJson<IPlayerResource[]>(`${this.apiRoot}/players/`, token);
-
-        let devices = await devicesPromise;
-        let players = await playersPromise;
+        // Both are awaited together rather than one after the other. They are issued in parallel, so
+        // awaiting them in sequence leaves the second promise's rejection UNHANDLED whenever the first
+        // one fails - and an unhandled rejection terminates the process on Node 22, turning a plain
+        // 401 while discovering devices into a dead invocation instead of an error Alexa can act on.
+        let [devices, players] = await Promise.all([
+            apiJson<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, token),
+            apiJson<IPlayerResource[]>(`${this.apiRoot}/players/`, token)
+        ]);
 
         return devices
           .map((d) => {
@@ -150,13 +162,25 @@ async function apiPost(uri : string, token : string) {
 
 function checkForErrors(response : IApiResponse) {
     if (response.statusCode >= 400) {
-        let body : { error : string } = response.content ? JSON.parse(response.content) : null;
+        // The body is advisory and the status code is not. Anything in front of the API - a gateway,
+        // a proxy, a load balancer - can answer with HTML or with nothing at all, and letting an
+        // unparseable body throw would erase the very status code being mapped, turning every such
+        // failure into INTERNAL_ERROR.
+        let body : { error : string } | null = null;
+        if (response.content) {
+            try {
+                body = JSON.parse(response.content);
+            } catch {
+                body = null;
+            }
+        }
+
         switch (response.statusCode) {
             case 401:
             case 403:
                 throw new InvalidAuthorizationCredentialError(generateErrorMessage(body, response.statusCode));
             case 404:
-                if (body.error === 'ClientPlayerNotFoundException' || body.error === 'ClientDeviceNotFoundException') {
+                if (body?.error === 'ClientPlayerNotFoundException' || body?.error === 'ClientDeviceNotFoundException') {
                     throw new NoSuchEndpointError(generateErrorMessage(body, response.statusCode));
                 } else {
                     throw new InvalidValueError(generateErrorMessage(body, response.statusCode));

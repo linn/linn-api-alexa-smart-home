@@ -6,7 +6,7 @@
 // taxonomy is customer-visible behaviour, and it is asserted here at the boundary rather than in the
 // facade, because the whole chain - facade error, handler, envelope - has to survive for it to work.
 import nock from 'nock';
-import { API_ROOT, DEVICE_ID, CORRELATION_TOKEN, controlDirective, invoke } from './fixtures';
+import { API_ROOT, DEVICE_ID, CORRELATION_TOKEN, controlDirective, discoveryDirective, invoke } from './fixtures';
 
 describe('Failures reaching Alexa', () => {
     beforeEach(() => { nock.cleanAll(); });
@@ -39,6 +39,59 @@ describe('Failures reaching Alexa', () => {
             expect(response.event.header.correlationToken).toBe(CORRELATION_TOKEN);
             expect(response.event.endpoint.endpointId).toBe(DEVICE_ID);
             expect(typeof response.event.payload.message).toBe("string");
+        });
+    });
+
+    // Discovery reads two listing endpoints rather than issuing a command, and those took a different
+    // path through the facade that skipped the error mapping entirely. A rejected token while
+    // discovering devices is the single most likely failure a customer meets - it is what happens when
+    // account linking lapses - and it has to tell Alexa to re-link rather than report a fault.
+    describe('while discovering devices', () => {
+        it('reports a rejected token as a credential failure, not an internal error', async () => {
+            nock(API_ROOT).get('/devices/').reply(401, { error: 'AccessTokenAuthenticationFailureException' });
+            nock(API_ROOT).get('/players/').reply(401, { error: 'AccessTokenAuthenticationFailureException' });
+
+            const response = await invoke(discoveryDirective());
+
+            expect(response.event.header.name).toBe("ErrorResponse");
+            expect(response.event.payload.type).toBe("INVALID_AUTHORIZATION_CREDENTIAL");
+        });
+
+        it('reports an upstream failure as an internal error', async () => {
+            nock(API_ROOT).get('/devices/').reply(502, { error: 'DeviceServiceException' });
+            nock(API_ROOT).get('/players/').reply(502, { error: 'DeviceServiceException' });
+
+            const response = await invoke(discoveryDirective());
+
+            expect(response.event.payload.type).toBe("INTERNAL_ERROR");
+        });
+    });
+
+    // Anything in front of the API can answer with HTML or with nothing. The status code still says
+    // what happened, and parsing the body must not be allowed to erase it.
+    describe('when the error body is not JSON', () => {
+        it('still maps an HTML 401 to a credential failure', async () => {
+            nock(API_ROOT).put(`/players/${DEVICE_ID}/volume?level=11`).reply(401, '<html><body>401 Unauthorized</body></html>');
+
+            const response = await invoke(controlDirective("Alexa.Speaker", "SetVolume", { volume: 11 }));
+
+            expect(response.event.payload.type).toBe("INVALID_AUTHORIZATION_CREDENTIAL");
+        });
+
+        it('still maps an empty-bodied 404 rather than failing on the missing body', async () => {
+            nock(API_ROOT).put(`/players/${DEVICE_ID}/volume?level=11`).reply(404);
+
+            const response = await invoke(controlDirective("Alexa.Speaker", "SetVolume", { volume: 11 }));
+
+            expect(response.event.payload.type).toBe("INVALID_VALUE");
+        });
+
+        it('still maps a 504 whose body is plain text', async () => {
+            nock(API_ROOT).put(`/players/${DEVICE_ID}/volume?level=11`).reply(504, 'gateway timeout');
+
+            const response = await invoke(controlDirective("Alexa.Speaker", "SetVolume", { volume: 11 }));
+
+            expect(response.event.payload.type).toBe("ENDPOINT_UNREACHABLE");
         });
     });
 

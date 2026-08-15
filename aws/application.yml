@@ -92,7 +92,13 @@ Resources:
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !GetAtt AlexaSmartHomeLogGroup.Arn
+                # Written out rather than using !GetAtt on the log group. Both stream actions are
+                # authorised against the LOG STREAM arn, so the resource has to end in the stream
+                # wildcard. GetAtt on a log group does return an arn already ending ':*', but relying
+                # on that is a poor trade here: if it were ever not so, the function still runs and
+                # simply stops producing logs - and logs are what the retention rule above exists to
+                # bound, and what any usage monitoring would read.
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/linn-api-alexa-smart-home-${stage}-alexaSmartHome:*
 
   # The other half of the binding: the skill holds our ARN, and this holds the skill's id. Without
   # EventSourceToken any Alexa skill in the world could invoke this function.
