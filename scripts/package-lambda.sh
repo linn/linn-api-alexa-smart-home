@@ -5,10 +5,14 @@
 # is given changes, so a fixed key would deploy the first build for ever.
 set -e
 
-# BASH_SOURCE, not $0: deploy.sh SOURCES this file, and under source $0 is still the CALLER's path.
-# It resolved to ./scripts while already inside scripts/, so the cd failed and the deploy stopped
-# before packaging anything. BASH_SOURCE[0] is this file either way, so the script works sourced or
-# executed.
+# BASH_SOURCE, not $0: deploy.sh SOURCES this file - it needs CODE_KEY below - and under source $0 is
+# still the CALLER's path. BASH_SOURCE[0] is this file either way, so this works sourced or executed.
+#
+# The caller's working directory is saved and restored, because being sourced means every cd here
+# happens in the CALLER's shell. deploy.sh runs from scripts/ and addresses its templates relatively,
+# so leaving it at the repository root sends the next command looking outside the repository
+# altogether. Anything that runs in someone else's shell has to put it back.
+_package_lambda_caller_pwd="$PWD"
 cd "$(dirname "${BASH_SOURCE[0]}")"
 cd ../
 
@@ -43,3 +47,8 @@ export CODE_KEY=alexa-smart-home-${TRAVIS_BUILD_NUMBER}.zip
 aws s3 cp alexa-smart-home.zip "s3://$RESOURCES_BUCKET/$CODE_KEY"
 
 echo "Uploaded $CODE_KEY to $RESOURCES_BUCKET"
+
+# Only on the success path: every guard above exits, and under `source` that ends the caller too, so
+# there is no path that returns to deploy.sh without passing through here.
+cd "$_package_lambda_caller_pwd"
+unset _package_lambda_caller_pwd
