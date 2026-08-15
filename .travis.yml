@@ -5,6 +5,17 @@ dist: noble
 before_script:
   - set -e
   - export CI_BUILD_ENV=travis-dist:noble
+  # The AWS CLI is not on the Travis image. It is needed here rather than inside a container because
+  # the deploy is CloudFormation driven from the VM - the previous deployment ran the Serverless
+  # Framework inside a Docker image, which is why nothing installed it before.
+  #
+  # Extracted to its own directory: the archive contains a top-level aws/ folder, and this repository
+  # already has an aws/ holding the CloudFormation templates.
+  - curl -sSf "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  - unzip -q awscliv2.zip -d ./aws-installer
+  - sudo ./aws-installer/aws/install
+  - rm -rf ./aws-installer awscliv2.zip
+  - aws --version
 
 script:
   # One entry point, so what CI does is readable in the repository rather than spread across this

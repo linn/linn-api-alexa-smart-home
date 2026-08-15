@@ -31,10 +31,15 @@ aws cloudformation deploy \
   --parameter-overrides environment=$ENVIRONMENT \
   --tags CIT=UI Project=linn-api-alexa-smart-home Environment=$ENVIRONMENT
 
+# Read with --query rather than piped through jq: jq is one more tool that has to be present on the
+# build image, and the CLI can select the output itself.
+#
 # Assigned separately from the export so that a failing describe-stacks aborts here. Exported in one
 # step it would succeed with an empty value, and the upload would then write to a bucket-less path.
-RESOURCES_BUCKET=$(aws cloudformation describe-stacks --stack-name linn-api-alexa-smart-home-persistence-$ENVIRONMENT \
-  | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "ResourcesBucketName").OutputValue')
+RESOURCES_BUCKET=$(aws cloudformation describe-stacks \
+  --stack-name linn-api-alexa-smart-home-persistence-$ENVIRONMENT \
+  --query 'Stacks[0].Outputs[?OutputKey==`ResourcesBucketName`].OutputValue' \
+  --output text)
 [ -n "$RESOURCES_BUCKET" ] || { echo "could not resolve the resources bucket" >&2; exit 1; }
 export RESOURCES_BUCKET
 

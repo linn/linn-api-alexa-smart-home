@@ -8,6 +8,11 @@ set -e
 cd "${0%/*}" # ensure cwd is script dir
 cd ../
 
+# Checked up front rather than discovered part-way through: an absent tool here fails after the build
+# has already run, with a bare "command not found" and a half-made package on disk.
+command -v zip >/dev/null || { echo "zip is not installed - cannot build the deployment package" >&2; exit 1; }
+command -v unzip >/dev/null || { echo "unzip is not installed - cannot verify the deployment package" >&2; exit 1; }
+
 [ -n "${RESOURCES_BUCKET:-}" ] || { echo "RESOURCES_BUCKET is not set" >&2; exit 1; }
 [ -n "${TRAVIS_BUILD_NUMBER:-}" ] || { echo "TRAVIS_BUILD_NUMBER is not set" >&2; exit 1; }
 
