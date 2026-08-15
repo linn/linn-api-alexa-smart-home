@@ -9,7 +9,9 @@
 # name, updates the function in place and leaves the ARN - and therefore the skill - untouched.
 set -e
 
-cd "${0%/*}" # ensure cwd is script dir
+# BASH_SOURCE rather than $0: identical while this is executed, and still correct if it is ever
+# sourced - where $0 would be the caller's path and this cd would land somewhere else entirely.
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 [ -n "${ENVIRONMENT:-}" ] || { echo "ENVIRONMENT is not set" >&2; exit 1; }
 

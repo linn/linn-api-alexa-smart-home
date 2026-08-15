@@ -5,7 +5,11 @@
 # is given changes, so a fixed key would deploy the first build for ever.
 set -e
 
-cd "${0%/*}" # ensure cwd is script dir
+# BASH_SOURCE, not $0: deploy.sh SOURCES this file, and under source $0 is still the CALLER's path.
+# It resolved to ./scripts while already inside scripts/, so the cd failed and the deploy stopped
+# before packaging anything. BASH_SOURCE[0] is this file either way, so the script works sourced or
+# executed.
+cd "$(dirname "${BASH_SOURCE[0]}")"
 cd ../
 
 # Checked up front rather than discovered part-way through: an absent tool here fails after the build

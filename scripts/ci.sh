@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-cd "${0%/*}" # ensure cwd is script dir
+# BASH_SOURCE rather than $0: identical while this is executed, and still correct if it is ever
+# sourced - where $0 would be the caller's path and this cd would land somewhere else entirely.
+cd "$(dirname "${BASH_SOURCE[0]}")"
 cd ../
 
 npm ci --ignore-scripts
