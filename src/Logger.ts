@@ -1,8 +1,12 @@
 import { IAlexaResponse, IAlexaRequest, IAlexaContext } from "./models/Alexa";
 
-function toResponseProperties(response : IAlexaResponse<any>, accountId : string) : any
+// The account's subject identifier is deliberately absent. It identifies a person, these lines go to
+// CloudWatch, and nothing downstream asks whether a log may carry it - so the only safe place to
+// decide is here. Requests are correlated by awsRequestId and, where present, by endpoint id, both of
+// which describe the device rather than its owner.
+function toResponseProperties(response : IAlexaResponse<any>) : any
 {
-    let logProperties = { header: response.event.header, payload: response.event.payload, accountId };
+    let logProperties = { header: response.event.header, payload: response.event.payload };
 
     if (response.event.endpoint) {
         logProperties["endPointId"] = response.event.endpoint.endpointId;
@@ -41,10 +45,10 @@ export default class {
     logRequest(request : IAlexaRequest<any>) {
         log("Debug", "Request Directive", this.context.awsRequestId, toRequestProperties(request));
     }
-    logResponse(response : IAlexaResponse<any>, accountId : string) {
-        log("Debug", "Response Event", this.context.awsRequestId, toResponseProperties(response, accountId));
+    logResponse(response : IAlexaResponse<any>) {
+        log("Debug", "Response Event", this.context.awsRequestId, toResponseProperties(response));
     }
-    logError(response : IAlexaResponse<any>, accountId : string) {
-        log("Debug", "Response Error Event", this.context.awsRequestId, toResponseProperties(response, accountId));
+    logError(response : IAlexaResponse<any>) {
+        log("Debug", "Response Error Event", this.context.awsRequestId, toResponseProperties(response));
     }
 }
