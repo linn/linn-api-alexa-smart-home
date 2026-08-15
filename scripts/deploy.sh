@@ -57,7 +57,11 @@ aws cloudformation deploy \
     codeBucket=$RESOURCES_BUCKET \
     codeKey=$CODE_KEY \
     linnApiRoot=$LINN_API_ROOT \
-  --capabilities=CAPABILITY_IAM \
+  # NAMED_IAM, not IAM: the template sets RoleName explicitly, reproducing the name Serverless gave
+  # the role so that adopting the existing production stack does not replace it. CloudFormation
+  # requires the stronger capability whenever a template names an IAM resource rather than letting it
+  # be generated.
+  --capabilities=CAPABILITY_NAMED_IAM \
   --tags CIT=UI Project=linn-api-alexa-smart-home Environment=$ENVIRONMENT
 
 echo "Deployed to $ENVIRONMENT"
