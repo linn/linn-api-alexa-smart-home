@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Alexa Smart Home skill backend - the Lambda the skill invokes, its log group and the permission that lets Alexa call it.
+
+# REPLACES the Serverless Framework deployment. Serverless itself deployed through CloudFormation, so
+# there is an existing stack owning the production function - and the Alexa skill is bound to that
+# function's ARN, which is account + region + FUNCTION NAME. Change the name and the skill has to be
+# repointed in the Alexa developer console.
+#
+# So the function name below is PINNED to the name Serverless generated (service-stage-functionKey),
+# and the logical id is pinned to the one Serverless used, so that deploying this template to the
+# EXISTING stack updates the function in place rather than replacing it. Both must be confirmed
+# against `aws cloudformation describe-stack-resources` before the first deploy: if the logical id is
+# wrong CloudFormation tries to create a second function with a name that is already taken, which
+# fails and rolls back - safe, but a wasted cycle.
+
+Parameters:
+  environment:
+    Type: String
+    AllowedValues: [sys, prod]
+  stage:
+    Type: String
+    Description: The stage segment of the function name. 'production' for prod - it is what Serverless used, and the skill is bound to the resulting ARN.
+    AllowedValues: [sys, production]
+  codeBucket:
+    Type: String
+  codeKey:
+    Type: String
+  alexaSkillId:
+    Type: String
+    Default: amzn1.ask.skill.e94eecfe-71a0-43f1-9785-ed517f984f02
+  linnApiRoot:
+    Type: String
+    Description: The Linn API this skill controls devices through.
+
+Resources:
+  # Logical id kept as Serverless generated it, so this is an in-place update of the existing
+  # function rather than a create-and-replace. See the header.
+  AlexaSmartHomeLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub linn-api-alexa-smart-home-${stage}-alexaSmartHome
+      Description: Alexa Smart Home Skill Backend
+      Runtime: nodejs22.x
+      Handler: dist/Handler.handler
+      Timeout: 7
+      MemorySize: 128
+      Role: !GetAtt AlexaSmartHomeRole.Arn
+      Code:
+        S3Bucket: !Ref codeBucket
+        S3Key: !Ref codeKey
+      Environment:
+        Variables:
+          LINN_API_ROOT: !Ref linnApiRoot
+
+  # Declared rather than left to Lambda to create implicitly. A log group Lambda creates for itself
+  # has NO expiry, and these logs carry the account subject from the bearer token - a pseudonymous
+  # identifier whose retention has to be bounded (ADR-034). Seven days is what the Serverless
+  # deployment set, and is preserved here deliberately.
+  AlexaSmartHomeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/linn-api-alexa-smart-home-${stage}-alexaSmartHome
+      RetentionInDays: 7
+
+  AlexaSmartHomeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        # Writing its own logs is the only thing this function does besides call the Linn API over
+        # the public internet. It reaches no AWS resource, so it is granted no other access.
+        - PolicyName: write-own-logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt AlexaSmartHomeLogGroup.Arn
+
+  # The other half of the binding: the skill holds our ARN, and this holds the skill's id. Without
+  # EventSourceToken any Alexa skill in the world could invoke this function.
+  AlexaSmartHomePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AlexaSmartHomeLambdaFunction.Arn
+      Principal: alexa-connectedhome.amazon.com
+      EventSourceToken: !Ref alexaSkillId
+
+Outputs:
+  FunctionArn:
+    Description: The ARN the Alexa skill is configured to invoke. It must not change.
+    Value: !GetAtt AlexaSmartHomeLambdaFunction.Arn
+  FunctionName:
+    Value: !Ref AlexaSmartHomeLambdaFunction

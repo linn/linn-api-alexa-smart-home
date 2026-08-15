@@ -1,6 +1,9 @@
 import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidValueError } from "./ILinnApiFacade";
 import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
-import * as webRequest from 'web-request';
+
+// The Linn API is reached with the runtime's own fetch. It replaced the web-request package, which
+// was last published in 2017, pulled Node type definitions of its own into the compile, and did
+// nothing here that fetch does not - leaving this service with a single runtime dependency.
 
 interface IAssociatedDeviceResource {
     id: string;
@@ -29,13 +32,27 @@ interface ILinkResource {
     href: string;
 }
 
+interface IApiResponse {
+    statusCode : number;
+    content : string | null;
+}
+
 function headers(token : string) {
     return {
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
     };
+}
+
+async function apiJson<T>(uri : string, token : string) : Promise<T> {
+    let response = await fetch(uri, { headers: headers(token) });
+    return await response.json() as T;
+}
+
+async function apiRequest(method : string, uri : string, token : string) : Promise<IApiResponse> {
+    let response = await fetch(uri, { method, headers: headers(token) });
+    let content = await response.text();
+    return { statusCode: response.status, content: content.length > 0 ? content : null };
 }
 
 class LinnApiFacade implements ILinnApiFacade {
@@ -43,8 +60,8 @@ class LinnApiFacade implements ILinnApiFacade {
     }
 
     async list(token : string): Promise<IEndpoint[]> {
-        let devicesPromise = webRequest.json<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, headers(token));
-        let playersPromise = webRequest.json<IPlayerResource[]>(`${this.apiRoot}/players/`, headers(token));
+        let devicesPromise = apiJson<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, token);
+        let playersPromise = apiJson<IPlayerResource[]>(`${this.apiRoot}/players/`, token);
 
         let devices = await devicesPromise;
         let players = await playersPromise;
@@ -120,21 +137,18 @@ class LinnApiFacade implements ILinnApiFacade {
 }
 
 async function apiPut(uri : string, token : string) {
-    var response = await webRequest.put(uri, headers(token));
-    checkForErrors(response);
+    checkForErrors(await apiRequest('PUT', uri, token));
 }
 
 async function apiDelete(uri : string, token : string) {
-    var response = await webRequest.delete(uri, headers(token));
-    checkForErrors(response);
+    checkForErrors(await apiRequest('DELETE', uri, token));
 }
 
 async function apiPost(uri : string, token : string) {
-    var response = await webRequest.post(uri, headers(token));
-    checkForErrors(response);
+    checkForErrors(await apiRequest('POST', uri, token));
 }
 
-function checkForErrors(response : webRequest.Response<string>) {
+function checkForErrors(response : IApiResponse) {
     if (response.statusCode >= 400) {
         let body : { error : string } = response.content ? JSON.parse(response.content) : null;
         switch (response.statusCode) {

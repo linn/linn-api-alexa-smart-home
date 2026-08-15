@@ -24,7 +24,10 @@ function createHandler(request : IAlexaRequest<any>) : AlexaRequestHandler<any, 
     let Handler = handlers[request.directive.header.namespace];
 
     if (Handler) {
-        let facade = new LinnApiFacade("https://api.linn.co.uk");
+        // Defaulted rather than required: an unset variable would otherwise take the whole skill
+        // down, and the production value is the one this has always used. A sys deployment sets it
+        // to the beta API so it can be exercised without touching customer devices.
+        let facade = new LinnApiFacade(process.env.LINN_API_ROOT || "https://api.linn.co.uk");
         return new Handler(facade);
     } else {
         throw new InvalidDirectiveError(`No handler for ${request.directive.header.namespace}`);;

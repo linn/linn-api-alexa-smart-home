@@ -1,7 +1,7 @@
 import { IAlexaRequest, IAlexaContext, IAlexaResponse } from './models/Alexa';
 import { handleError, createHandler } from './handlers';
 import Logger from './Logger';
-import * as jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : IAlexaResponse<any>) => void) {
     let logger = new Logger(context);
@@ -13,7 +13,7 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
     try {
         let handler = createHandler(request);
 
-        jwt = jwt_decode(handler.token(request)) || jwt;
+        jwt = jwtDecode<{ sub : string }>(handler.token(request)) || jwt;
 
         let response = await handler.handle(request);
 

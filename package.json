@@ -1,19 +1,27 @@
 {
+  "name": "linn-api-alexa-smart-home",
+  "version": "1.0.0",
+  "description": "Alexa Smart Home skill backend for Linn devices",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
-    "jwt-decode": "^2.2.0",
-    "web-request": "^1.0.7"
+    "jwt-decode": "^4.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.1",
-    "@types/nock": "^9.3.0",
-    "jest": "^23.4.2",
-    "nock": "^9.4.4",
-    "ts-jest": "^23.0.1",
-    "typescript": "^3.0.1"
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.2",
+    "jest": "^29.7.0",
+    "nock": "^14.0.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.2"
   },
   "scripts": {
-    "build": "node_modules/.bin/tsc src/Handler.ts --outDir lib/js --lib es6",
-    "pretest": "node_modules/.bin/tsc test/**Test.ts --outDir lib --lib es6 --module commonjs",
-    "test": "node_modules/.bin/jest"
+    "build": "tsc",
+    "test": "jest --selectProjects unit",
+    "test:acceptance": "jest --selectProjects acceptance",
+    "test:all": "jest"
   }
 }

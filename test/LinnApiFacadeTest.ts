@@ -1,7 +1,7 @@
 import LinnApiFacade from '../src/facade/LinnApiFacade';
 import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidValueError } from "../src/facade/ILinnApiFacade";
 import { IEndpoint } from '../src/models/Alexa';
-import * as nock from 'nock';
+import nock from 'nock';
 
 describe('LinnApiFacade', () => {
     let sut : ILinnApiFacade;
