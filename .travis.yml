@@ -9,4 +9,8 @@ env:
 script:
 - docker build -t deploy .
 after_success:
-- docker run -e AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} deploy
+# Deploy only from master, and not from a pull request. serverless.yml hardcodes stage: production,
+# so this container deploys PRODUCTION wherever it runs - and until now nothing stopped it running on
+# a feature branch or a pull request build. That has been masked by the build failing before
+# after_success is reached; it would have gone live again the moment the build was repaired.
+- if [ "${TRAVIS_BRANCH}" = "master" ] && [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then docker run -e AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} deploy; fi
