@@ -21,12 +21,18 @@
 # describing something else.
 set -e
 
-# BASH_SOURCE rather than $0: this may be sourced, and under source $0 is the caller's path.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-
 [ $# -eq 2 ] || { echo "usage: emit-lambda-sbom.sh <commit-sha> <package-dir>" >&2; exit 2; }
 COMMIT_SHA="$1"
-PACKAGE_DIR="$2"
+
+# Resolved to an absolute path HERE, against the caller's working directory, because the cd below
+# moves us. package-lambda.sh runs from the repository root and passes a relative `package`; resolved
+# after the cd that becomes scripts/package, which does not exist - and the failure then reads as
+# "the package was never built" when it was built exactly where it should be.
+PACKAGE_DIR="$(cd "$2" 2>/dev/null && pwd -P)" \
+  || { echo "package directory '$2' does not exist relative to $PWD - the package must be built before it can be documented" >&2; exit 2; }
+
+# BASH_SOURCE rather than $0: this may be sourced, and under source $0 is the caller's path.
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 [ -n "${ENVIRONMENT:-}" ] || { echo "ENVIRONMENT is not set - cannot choose an SBOM store" >&2; exit 1; }
 [ -n "${CI_BUILD_ENV:-}" ] || { echo "CI_BUILD_ENV is not set - cannot record what built the artefact" >&2; exit 1; }
@@ -38,8 +44,6 @@ PACKAGE_DIR="$2"
 # emitter produced a document is part of what that document can be trusted to say.
 SBOM_TOOL_IMAGE=linn/sbom-tool:1243
 SBOM_BUCKET=linn-api-infrastructure-$ENVIRONMENT-sbom-store
-
-[ -d "$PACKAGE_DIR" ] || { echo "package directory '$PACKAGE_DIR' does not exist - the package must be built before it can be documented" >&2; exit 2; }
 
 # Both checked explicitly, because their absence does not look like an ordering fault: the scan simply
 # catalogues nothing, and the emitter then refuses an empty document with a message about components
