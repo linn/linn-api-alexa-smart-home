@@ -16,7 +16,12 @@ env:
 
 before_script:
   - set -e
-  - export CI_BUILD_ENV=travis-dist:noble
+  - export CI_BUILD_ENV=travis-dist:${TRAVIS_DIST}
+  - '[ -n "${TRAVIS_DIST}" ] || { echo "TRAVIS_DIST is not set - cannot record what built the artefact" >&2; exit 1; }'
+  # The SBOM step pulls linn/sbom-tool, which is private. This repository publishes no images and so
+  # never needed a registry login before.
+  - '[ -n "${DOCKER_USERNAME}" ] && [ -n "${DOCKER_PASSWORD}" ] || { echo "Docker Hub credentials are not set - the SBOM step cannot pull its toolchain" >&2; exit 1; }'
+  - printf '%s' "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   # The AWS CLI is not on the Travis image. It is needed here rather than inside a container because
   # the deploy is CloudFormation driven from the VM - the previous deployment ran the Serverless
   # Framework inside a Docker image, which is why nothing installed it before.

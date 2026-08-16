@@ -45,6 +45,11 @@ RESOURCES_BUCKET=$(aws cloudformation describe-stacks \
 [ -n "$RESOURCES_BUCKET" ] || { echo "could not resolve the resources bucket" >&2; exit 1; }
 export RESOURCES_BUCKET
 
+# The commit the document will name as its source. On a pull request Travis builds an ephemeral merge
+# commit that ceases to exist once the branch merges, so the pull request's own head is recorded
+# instead - it is the one of the two that can still be dereferenced afterwards.
+export COMMIT_SHA="${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}"
+
 source ./package-lambda.sh
 
 # CAPABILITY_NAMED_IAM, not CAPABILITY_IAM: application.yml sets RoleName explicitly, reproducing the

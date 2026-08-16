@@ -22,6 +22,7 @@ command -v zip >/dev/null || { echo "zip is not installed - cannot build the dep
 command -v unzip >/dev/null || { echo "unzip is not installed - cannot verify the deployment package" >&2; exit 1; }
 
 [ -n "${RESOURCES_BUCKET:-}" ] || { echo "RESOURCES_BUCKET is not set" >&2; exit 1; }
+[ -n "${COMMIT_SHA:-}" ] || { echo "COMMIT_SHA is not set - the SBOM step cannot name the source it documents" >&2; exit 1; }
 [ -n "${TRAVIS_BUILD_NUMBER:-}" ] || { echo "TRAVIS_BUILD_NUMBER is not set" >&2; exit 1; }
 
 rm -rf dist package
@@ -34,6 +35,11 @@ mkdir -p package
 cp package.json package-lock.json package/
 cp -R dist package/dist
 ( cd package && npm ci --omit=dev --ignore-scripts )
+# BEFORE the manifests are removed, because that is the only moment the tree is both complete and
+# describable: the install has run, and syft catalogues JavaScript from the lockfile - which the zip
+# deliberately does not carry. Run this after the removal and the scan finds nothing.
+./scripts/emit-lambda-sbom.sh "$COMMIT_SHA" package
+
 rm -f package/package.json package/package-lock.json
 
 ( cd package && zip -r -q ../alexa-smart-home.zip . )
