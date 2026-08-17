@@ -60,6 +60,13 @@ SBOM_BUCKET=linn-api-infrastructure-$ENVIRONMENT-sbom-store
 # yields an empty string, which would key the document at a path with an empty segment; a second
 # function would need its own document rather than quietly getting the first match's.
 TEMPLATE=../aws/application.yml
+
+# An empty stage does NOT leave the placeholder behind to be spotted - the substitution below runs and
+# removes it, yielding `linn-api-alexa-smart-home--alexaSmartHome`. That name is well-formed enough to
+# pass the emitter's lambda-ref rule, so the document uploads successfully under a function that is not
+# deployed. Checked here, before the derivation, because afterwards there is nothing left to see.
+[ -n "$STAGE" ] || { echo "usage: emit-lambda-sbom.sh <commit-sha> <package-dir> <stage> - stage was empty" >&2; exit 2; }
+
 # `!Sub` excludes the invoke permission's `FunctionName: !GetAtt`, which names an ARN and not a
 # function. `[$]` rather than a bare `$`, which is not reliably literal in a basic regular expression.
 FUNCTION_NAME=$(grep -oE 'FunctionName: !Sub [A-Za-z0-9._${}-]+' "$TEMPLATE" \
@@ -70,11 +77,11 @@ RUNTIME=$(grep -oE 'Runtime: [A-Za-z0-9.]+' "$TEMPLATE" | sed 's/Runtime: //')
 	|| { echo "expected exactly one 'FunctionName: !Sub' in $TEMPLATE, found: '$FUNCTION_NAME'" >&2; exit 1; }
 [ "$(printf '%s' "$RUNTIME" | grep -c .)" -eq 1 ] \
 	|| { echo "expected exactly one 'Runtime:' in $TEMPLATE, found: '$RUNTIME'" >&2; exit 1; }
-# The stage must have been substituted. An unset STAGE leaves the literal `${stage}` in the name, which
-# the emitter rejects as a lambda ref - but rejects for its punctuation, naming neither this template
-# nor the missing variable.
+# The placeholder must actually have been substituted. This fires where the template renames
+# it (`${environment}`, say): the sed then matches nothing, the literal survives, and the emitter would
+# reject it for its punctuation without naming this template or the renamed parameter.
 case "$FUNCTION_NAME" in
-	*'${stage}'*) echo "STAGE was not substituted into '$FUNCTION_NAME' - stage argument was empty" >&2; exit 1 ;;
+	*'${'*) echo "an unsubstituted placeholder remains in '$FUNCTION_NAME' - $TEMPLATE does not use \${stage}" >&2; exit 1 ;;
 esac
 
 # Both checked explicitly, because their absence does not look like an ordering fault: the scan simply
