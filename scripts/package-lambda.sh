@@ -24,6 +24,10 @@ command -v unzip >/dev/null || { echo "unzip is not installed - cannot verify th
 [ -n "${RESOURCES_BUCKET:-}" ] || { echo "RESOURCES_BUCKET is not set" >&2; exit 1; }
 [ -n "${COMMIT_SHA:-}" ] || { echo "COMMIT_SHA is not set - the SBOM step cannot name the source it documents" >&2; exit 1; }
 [ -n "${TRAVIS_BUILD_NUMBER:-}" ] || { echo "TRAVIS_BUILD_NUMBER is not set" >&2; exit 1; }
+# Set by deploy.sh, which sources this file, so it is in scope without being exported. Checked here
+# rather than left to the SBOM step: unset, the function name loses its stage and the document is keyed
+# under a function that is not deployed - which no build failure would ever reveal.
+[ -n "${STAGE:-}" ] || { echo "STAGE is not set - the SBOM step cannot name the function this package deploys as" >&2; exit 1; }
 
 rm -rf dist package
 npm run build
@@ -38,7 +42,7 @@ cp -R dist package/dist
 # BEFORE the manifests are removed, because that is the only moment the tree is both complete and
 # describable: the install has run, and syft catalogues JavaScript from the lockfile - which the zip
 # deliberately does not carry. Run this after the removal and the scan finds nothing.
-./scripts/emit-lambda-sbom.sh "$COMMIT_SHA" package
+./scripts/emit-lambda-sbom.sh "$COMMIT_SHA" package "$STAGE"
 
 rm -f package/package.json package/package-lock.json
 

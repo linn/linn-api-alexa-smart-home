@@ -21,8 +21,13 @@
 # describing something else.
 set -e
 
-[ $# -eq 2 ] || { echo "usage: emit-lambda-sbom.sh <commit-sha> <package-dir>" >&2; exit 2; }
+[ $# -eq 3 ] || { echo "usage: emit-lambda-sbom.sh <commit-sha> <package-dir> <stage>" >&2; exit 2; }
 COMMIT_SHA="$1"
+# The deployed stack's stage, which is NOT $ENVIRONMENT: prod deploys as `production`, because the
+# Alexa skill is bound to the ARN Serverless generated and the function name carries the stage.
+# Passed in rather than re-derived, so the name this document is keyed by and the name deploy.sh
+# actually deploys come from one decision.
+STAGE="$3"
 
 # Resolved to an absolute path HERE, against the caller's working directory, because the cd below
 # moves us. package-lambda.sh runs from the repository root and passes a relative `package`; resolved
@@ -40,10 +45,37 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck source=./artefacts.sh
 . ./artefacts.sh
 
-# linn-api-infrastructure build 1243. Pinned for the same reason every other repository pins it: which
-# emitter produced a document is part of what that document can be trusted to say.
-SBOM_TOOL_IMAGE=linn/sbom-tool:1243
+# The first linn-api-infrastructure build carrying the Lambda identity contract: a document keyed by
+# the DEPLOYED FUNCTION NAME rather than by repository alone. That segment is what the deployment
+# cross-check joins on, so a document emitted by an earlier tag is filed where nothing looks for it and
+# the function reads as undocumented however complete the document is.
+SBOM_TOOL_IMAGE=linn/sbom-tool:1304
 SBOM_BUCKET=linn-api-infrastructure-$ENVIRONMENT-sbom-store
+
+# Read from the template rather than restated here. A name written down twice is a name that can
+# disagree with itself, and the failure is silent in the direction that matters: the document is
+# well-formed, the upload succeeds, and only the coverage join notices - long after the build is green.
+#
+# One of each is required rather than assumed. `grep` on a template that stopped declaring a name
+# yields an empty string, which would key the document at a path with an empty segment; a second
+# function would need its own document rather than quietly getting the first match's.
+TEMPLATE=../aws/application.yml
+# `!Sub` excludes the invoke permission's `FunctionName: !GetAtt`, which names an ARN and not a
+# function. `[$]` rather than a bare `$`, which is not reliably literal in a basic regular expression.
+FUNCTION_NAME=$(grep -oE 'FunctionName: !Sub [A-Za-z0-9._${}-]+' "$TEMPLATE" \
+	| sed 's/FunctionName: !Sub //; s/[$]{stage}/'"$STAGE"'/')
+RUNTIME=$(grep -oE 'Runtime: [A-Za-z0-9.]+' "$TEMPLATE" | sed 's/Runtime: //')
+
+[ "$(printf '%s' "$FUNCTION_NAME" | grep -c .)" -eq 1 ] \
+	|| { echo "expected exactly one 'FunctionName: !Sub' in $TEMPLATE, found: '$FUNCTION_NAME'" >&2; exit 1; }
+[ "$(printf '%s' "$RUNTIME" | grep -c .)" -eq 1 ] \
+	|| { echo "expected exactly one 'Runtime:' in $TEMPLATE, found: '$RUNTIME'" >&2; exit 1; }
+# The stage must have been substituted. An unset STAGE leaves the literal `${stage}` in the name, which
+# the emitter rejects as a lambda ref - but rejects for its punctuation, naming neither this template
+# nor the missing variable.
+case "$FUNCTION_NAME" in
+	*'${stage}'*) echo "STAGE was not substituted into '$FUNCTION_NAME' - stage argument was empty" >&2; exit 1 ;;
+esac
 
 # Both checked explicitly, because their absence does not look like an ordering fault: the scan simply
 # catalogues nothing, and the emitter then refuses an empty document with a message about components
@@ -63,17 +95,22 @@ trap cleanup EXIT
 
 DOC="$WORK_DIR/alexa-smart-home.cdx.json"
 
-echo "Emitting SBOM for the Lambda deployment package..."
+echo "Emitting SBOM for $FUNCTION_NAME ($RUNTIME)..."
 
 # The tree is copied INTO the emitter rather than bind-mounted, and the document copied back out. A
 # -v source is resolved by the daemon against the HOST filesystem, so where a build runs inside a
 # container the mount silently names a different, empty directory. docker cp behaves the same either
 # way, which is why the estate uses one mechanism rather than two.
+#
+# SBOM_EXPECT_NO_DEPENDENCIES is false because this function ships jwt-decode: an empty catalogue here
+# would be a scan that went wrong, not an artefact with nothing to declare, and the emitter refuses it.
 CONTAINER_ID=$(docker create \
 	-e SBOM_COMMIT_SHA="$COMMIT_SHA" \
-	-e SBOM_ARTEFACT_REF="alexa-smart-home" \
+	-e SBOM_ARTEFACT_REF="$FUNCTION_NAME" \
 	-e SBOM_REPO="$SOURCE_REPO" \
 	-e SBOM_ARTEFACT_CLASS=lambda \
+	-e SBOM_RUNTIME="$RUNTIME" \
+	-e SBOM_EXPECT_NO_DEPENDENCIES=false \
 	-e SBOM_CRA_SCOPE="$SBOM_CRA_SCOPE" \
 	-e SBOM_BUILDER_IMAGE="$CI_BUILD_ENV" \
 	"$SBOM_TOOL_IMAGE" emit-sbom.sh "dir:/scan" /tmp/sbom.cdx.json)
