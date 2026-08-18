@@ -42,6 +42,37 @@ describe('Failures reaching Alexa', () => {
         });
     });
 
+    // Two shapes that used to produce no usable answer at all.
+    describe('a directive the code cannot make sense of', () => {
+        it('an unknown Discovery name is refused as INVALID_DIRECTIVE, not as an internal message', async () => {
+            const directive = discoveryDirective();
+            directive.directive.header.name = "NotDiscover";
+
+            const response = await invoke(directive);
+
+            // Previously handle() fell off the end returning undefined, the caller dereferenced it, and
+            // the customer got INTERNAL_ERROR carrying "Cannot read properties of undefined (reading
+            // 'event')" - an internal exception message shipped to Amazon.
+            expect(response.event.payload.type).toBe("INVALID_DIRECTIVE");
+            expect(response.event.payload.message).not.toContain("undefined");
+        });
+
+        // Alexa always sends `directive`; a console test invoke or a warm-up ping need not. This used to
+        // be the worst outcome available: logRequest ran before the try and threw, so the handler's
+        // promise rejected with Alexa receiving nothing - and the log group got nothing either, not even
+        // the request. Moving logRequest inside the try was NOT enough on its own: handleError then threw
+        // on the same missing directive, inside the catch, and the promise never settled at all. This
+        // test is what found that.
+        it('a payload with no directive still produces a well-formed Alexa error', async () => {
+            const response = await invoke({} as any);
+
+            expect(response.event.header.name).toBe("ErrorResponse");
+            expect(response.event.header.namespace).toBe("Alexa");
+            expect(response.event.header.payloadVersion).toBe("3");
+            expect(response.event.payload.type).toBe("INTERNAL_ERROR");
+        });
+    });
+
     // Discovery reads two listing endpoints rather than issuing a command, and those took a different
     // path through the facade that skipped the error mapping entirely. A rejected token while
     // discovering devices is the single most likely failure a customer meets - it is what happens when
