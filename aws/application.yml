@@ -38,6 +38,8 @@ Conditions:
   IsInheritedFromServerless: !Equals [!Ref stage, production]
   # Matching every other RnDCost site in the estate: a boolean, false in prod.
   RndCost: !Not [!Equals [!Ref environment, prod]]
+  # The silence alarm below is prod-only: sys sees no customer traffic, so absence there is normal.
+  IsProduction: !Equals [!Ref environment, prod]
 
 Resources:
   # Logical id kept as Serverless generated it, so this is an in-place update of the existing
@@ -239,6 +241,63 @@ Resources:
           Value: linn-api-alexa-smart-home
         - Key: RnDCost
           Value: !If [RndCost, 'true', 'false']
+
+  # THE ONLY THING THAT CAN SEE THE SKILL GO DARK, and the reason it is needed is specific: if Alexa's
+  # invoke permission is ever wrong, Alexa is refused BEFORE the function runs. There is no invocation, no
+  # log stream, no Errors datapoint and no metric-filter hit - every other alarm here watches a function
+  # that runs and fails, and none of them can see one that is never reached. That failure mode is live
+  # today, because this migration recreates the Lambda permission.
+  #
+  # It also stands in for a manual test that cannot be performed: nobody at Linn has an Alexa account
+  # linked, so "ask it to turn something on" is not available. Note a scheduled canary would NOT
+  # substitute - a scheduled invoke authenticates with IAM, not as alexa-connectedhome.amazon.com, so it
+  # would prove the code works while the skill stayed broken.
+  #
+  # THE THREE-HOUR WINDOW IS DERIVED, NOT PICKED. 168 consecutive hours of production Invocations were
+  # measured before writing this: 98 calls a day, 5 hours with zero calls (3%), and the longest run of
+  # consecutive zero hours was ONE. Two in a row never occurred; three has no precedent in the data.
+  # Traffic is also flat around the clock - the 01:00-05:00 zero rate was 0/35 - so there is no quiet
+  # period for this to fire on, which is what makes absence a usable signal here and would not be true of
+  # a typical consumer skill.
+  #
+  # TreatMissingData: breaching, unlike the two alarms above. For them a missing datapoint means "nothing
+  # went wrong"; here it means "nothing arrived", which is the whole event.
+  functionSilenceAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProduction
+    Properties:
+      AlarmDescription: The Alexa skill has received no invocations for three hours - Alexa may be unable to invoke it at all
+      AlarmActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      OKActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      Namespace: AWS/Lambda
+      MetricName: Invocations
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AlexaSmartHomeLambdaFunction
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 3
+      # All three must be zero, so a single quiet hour - which happens about 3% of the time - cannot fire
+      # it. A rolling three hours rather than one fixed three-hour bucket, so detection does not depend on
+      # where the outage falls in the clock.
+      DatapointsToAlarm: 3
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      Tags:
+        - Key: CIT
+          Value: UI
+        - Key: Environment
+          Value: !Ref environment
+        - Key: Project
+          Value: linn-api-alexa-smart-home
+        - Key: RnDCost
+          # Written out rather than !If [RndCost, …]: this resource only exists when environment is prod,
+          # and RndCost is defined as "not prod", so the condition can only ever be false here. cfn-lint
+          # says so (W1028), and an unreachable branch is worse than the constant it hides.
+          Value: 'false'
 
 Outputs:
   FunctionArn:
