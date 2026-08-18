@@ -36,6 +36,8 @@ Parameters:
 
 Conditions:
   IsInheritedFromServerless: !Equals [!Ref stage, production]
+  # Matching every other RnDCost site in the estate: a boolean, false in prod.
+  RndCost: !Not [!Equals [!Ref environment, prod]]
 
 Resources:
   # Logical id kept as Serverless generated it, so this is an in-place update of the existing
@@ -139,6 +141,102 @@ Resources:
     Condition: IsInheritedFromServerless
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
+
+  # WHAT MAKES A FAILURE VISIBLE. Before these, this skill could fail for every customer with nothing at
+  # Linn capable of noticing: Alexa converts a backend error into a spoken "your device isn't responding",
+  # no HTTP status is exposed to anyone, and the log group expires in 7 days.
+  #
+  # THE METRIC FILTER IS THE PRIMARY SIGNAL, NOT THE ERRORS ALARM, and that is the opposite of the
+  # obvious arrangement. Handler.ts answers every handled failure with callback(null, response) - because
+  # a well-formed Alexa ErrorResponse IS the correct answer - so Lambda counts those invocations as
+  # SUCCESSES. The Errors metric would read zero while 100% of directives failed. Only the log line
+  # distinguishes them.
+  #
+  # Matched on the message rather than a level: Logger writes every line at "Debug", so the level cannot
+  # separate an error from a request. "Response Error Event" is the literal Logger.logError emits.
+  errorResponseMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref AlexaSmartHomeLogGroup
+      FilterPattern: '"Response Error Event"'
+      MetricTransformations:
+        - MetricName: !Sub AlexaSmartHomeErrorResponses-${environment}
+          MetricNamespace: Linn/AlexaSmartHome
+          MetricValue: "1"
+          # So a quiet period reads as zero rather than as missing data, which is what lets a future
+          # alarm on this metric distinguish "no failures" from "no traffic".
+          DefaultValue: 0
+
+  # NO ALARM ON THAT METRIC YET, DELIBERATELY. Some rate of INVALID_AUTHORIZATION_CREDENTIAL is normal -
+  # tokens expire - and nobody has measured what normal is. A threshold invented here would either cry
+  # wolf or, worse, sit above the real failure rate and read as confidence. The filter starts
+  # accumulating the metric now so that a threshold can be chosen from a week of data rather than
+  # guessed; the alarm is a follow-up once there is a baseline.
+
+  # Errors and Throttles DO get thresholds of one, and the reason is the same fact that demotes them:
+  # because handled failures return successfully, an Errors datapoint is never an ordinary failure. It is
+  # a crash or - the case that matters - a TIMEOUT, which is the one path that produces no log line at all
+  # and so is invisible to the filter above.
+  functionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub The Alexa skill function crashed or timed out (${environment})
+      AlarmActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      OKActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AlexaSmartHomeLambdaFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Tags:
+        - Key: CIT
+          Value: UI
+        - Key: Environment
+          Value: !Ref environment
+        - Key: Project
+          Value: linn-api-alexa-smart-home
+        - Key: RnDCost
+          Value: !If [RndCost, 'true', 'false']
+
+  # There is no reserved concurrency on this function, so a throttle means something else in the shared
+  # account consumed the pool. The skill is silent for the customer either way, and this is the only
+  # place it would show.
+  functionThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub The Alexa skill function was throttled (${environment})
+      AlarmActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      OKActions:
+        - Fn::ImportValue: !Sub linn-api-infrastructure-${environment}-alert-teams-ui-topic-arn
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref AlexaSmartHomeLambdaFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Tags:
+        - Key: CIT
+          Value: UI
+        - Key: Environment
+          Value: !Ref environment
+        - Key: Project
+          Value: linn-api-alexa-smart-home
+        - Key: RnDCost
+          Value: !If [RndCost, 'true', 'false']
 
 Outputs:
   FunctionArn:
