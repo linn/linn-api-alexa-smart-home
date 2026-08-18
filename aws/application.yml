@@ -294,21 +294,15 @@ Resources:
         - Key: Project
           Value: linn-api-alexa-smart-home
         - Key: RnDCost
-          # The !If IS redundant here and is kept deliberately. cfn-lint reports the 'true' branch as
-          # unreachable (W1028) and it is right: this alarm carries Condition: IsProduction, so within it
-          # environment is prod and RndCost - defined as "not prod" - cannot be true.
+          # A constant, not !If [RndCost, …], because this resource carries Condition: IsProduction and
+          # RndCost is defined as "not prod" - so the If's true branch is unreachable here and cfn-lint
+          # says so (W1028). The two alarms above are unconditioned and keep the If, correctly tagging
+          # 'true' in sys.
           #
-          # It stays because a bare 'false' is a copy-paste trap. Every other RnDCost site in the estate
-          # uses this exact !If, so this block is the one a reader would lift into a resource that DOES
-          # exist in sys - and there it would tag sys as non-R&D, silently, with cost allocation quietly
-          # under-attributing and nothing failing. The redundancy costs a warning from a tool this
-          # repository's CI does not run; the constant costs a wrong value nobody would notice.
-          #
-          # So do not "tidy" this to a constant. And note W1028 would NOT need suppressing if cfn-lint is
-          # added here: the estate's gate is linn-api-infrastructure's scripts/lint.sh, which runs
-          # `cfn-lint --non-zero-exit-code error` - a warning passes. Only a stricter gate than the one the
-          # estate actually uses would force a choice between this and a clean run.
-          Value: !If [RndCost, 'true', 'false']
+          # ACCEPTED RISK, decided deliberately: lifted into a resource that DOES exist in sys, this block
+          # would tag sys as non-R&D silently. If you are copying it, copy the If from one of the alarms
+          # above instead.
+          Value: 'false'
 
 Outputs:
   FunctionArn:
