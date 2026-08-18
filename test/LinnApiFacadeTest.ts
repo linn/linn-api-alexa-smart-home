@@ -71,6 +71,34 @@ describe('LinnApiFacade', () => {
         }, REQUEST_TIMEOUT_FLOOR + 10000);
     });
 
+    // Values that reach the query string are customer-controlled. Source names come from
+    // player.sources[].name in the Linn API, which is what the customer types in the Linn app, and Alexa
+    // sends back the name we advertised in Discovery. Interpolated raw, a name containing & split into a
+    // second parameter: the API saw a truncated sourceId and a stray one, selected the wrong source or
+    // none, answered 200, and the customer was told the command had worked.
+    describe('A source name that needs escaping', () => {
+        it('reaches the API as one correctly encoded parameter', async () => {
+            const players = nock(fakeApiRoot)
+                .put('/players/device0/source')
+                .query({ sourceId: 'TV & Radio' })
+                .reply(200);
+
+            await sut.setSource("device0", "TV & Radio", "VALID_TOKEN");
+
+            expect(players.isDone()).toBeTruthy();
+        });
+
+        it('encodes a device id that would otherwise change the path', async () => {
+            // Not attacker-reachable today - endpoint ids originate from our own Discovery response - but
+            // it is the same interpolation, and a path segment is a worse place to get it wrong.
+            const players = nock(fakeApiRoot).put('/players/a%2Fb/play').reply(200);
+
+            await sut.play("a/b", "VALID_TOKEN");
+
+            expect(players.isDone()).toBeTruthy();
+        });
+    });
+
     describe('Listing Devices', () => {
         let token : string;
         let endpoints : IEndpoint[];

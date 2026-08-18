@@ -133,54 +133,54 @@ class LinnApiFacade implements ILinnApiFacade {
 
     async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
         if (value) {
-            await apiPut(`${this.apiRoot}/devices/${deviceId}/standby`, token);
+            await apiPut(`${this.apiRoot}/devices/${encodeURIComponent(deviceId)}/standby`, token);
         } else {
-            await apiDelete(`${this.apiRoot}/devices/${deviceId}/standby`, token);
+            await apiDelete(`${this.apiRoot}/devices/${encodeURIComponent(deviceId)}/standby`, token);
         }
     }
 
     async play(deviceId : string, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/play`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/play`, token);
     }
 
     async pause(deviceId : string, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/pause`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/pause`, token);
     }
 
     async stop(deviceId : string, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/stop`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/stop`, token);
     }
 
     async next(deviceId : string, token : string) : Promise<void> {
-        await apiPost(`${this.apiRoot}/players/${deviceId}/next`, token);
+        await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/next`, token);
     }
 
     async prev(deviceId : string, token : string) : Promise<void> {
-        await apiPost(`${this.apiRoot}/players/${deviceId}/prev`, token);
+        await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/prev`, token);
     }
 
     async setMute(deviceId : string, value : boolean, token : string) : Promise<void> {
         if (value) {
-            await apiPut(`${this.apiRoot}/players/${deviceId}/mute`, token);
+            await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/mute`, token);
         } else {
-            await apiDelete(`${this.apiRoot}/players/${deviceId}/mute`, token);
+            await apiDelete(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/mute`, token);
         }
     }
 
     async adjustVolume(deviceId : string, steps : number, token : string) : Promise<void> {
-        await apiPost(`${this.apiRoot}/players/${deviceId}/volume?steps=${steps}`, token);
+        await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?steps=${encodeURIComponent(String(steps))}`, token);
     }
 
     async setVolume(deviceId : string, level : number, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/volume?level=${level}`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?level=${encodeURIComponent(String(level))}`, token);
     }
 
     async setSource(deviceId : string, sourceId : string, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/source?sourceId=${sourceId}`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/source?sourceId=${encodeURIComponent(sourceId)}`, token);
     }
 
     async invokeDevicePin(deviceId: string, pinId : number, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${deviceId}/play?pinId=${pinId}`, token);
+        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/play?pinId=${encodeURIComponent(String(pinId))}`, token);
     }
 }
 
