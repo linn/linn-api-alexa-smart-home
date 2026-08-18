@@ -304,8 +304,10 @@ Resources:
           # under-attributing and nothing failing. The redundancy costs a warning from a tool this
           # repository's CI does not run; the constant costs a wrong value nobody would notice.
           #
-          # So do not "tidy" this to a constant. If cfn-lint is ever added to this repository's pipeline,
-          # suppress W1028 here rather than resolve it.
+          # So do not "tidy" this to a constant. And note W1028 would NOT need suppressing if cfn-lint is
+          # added here: the estate's gate is linn-api-infrastructure's scripts/lint.sh, which runs
+          # `cfn-lint --non-zero-exit-code error` - a warning passes. Only a stricter gate than the one the
+          # estate actually uses would force a choice between this and a clean run.
           Value: !If [RndCost, 'true', 'false']
 
 Outputs:
