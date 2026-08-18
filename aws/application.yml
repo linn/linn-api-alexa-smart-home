@@ -294,9 +294,16 @@ Resources:
         - Key: Project
           Value: linn-api-alexa-smart-home
         - Key: RnDCost
-          # Written out rather than !If [RndCost, …]: this resource only exists when environment is prod,
-          # and RndCost is defined as "not prod", so the condition can only ever be false here. cfn-lint
-          # says so (W1028), and an unreachable branch is worse than the constant it hides.
+          # NOT !If [RndCost, …] here, and ONLY here - the two alarms above do use the !If, because they
+          # exist in sys as well and correctly tag 'true' there.
+          #
+          # This alarm alone carries Condition: IsProduction, so CloudFormation never creates it unless
+          # environment is prod. Within THIS resource, therefore, environment is prod and RndCost - which
+          # is defined as "not prod" - cannot be anything but false. cfn-lint reaches the same conclusion
+          # by solving the conditions together and reports the 'true' branch as unreachable (W1028).
+          #
+          # Nothing here says environment cannot be sys. It obviously can; that is what the other two
+          # alarms tag for.
           Value: 'false'
 
 Outputs:
