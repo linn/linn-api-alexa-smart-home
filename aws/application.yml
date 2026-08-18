@@ -294,17 +294,19 @@ Resources:
         - Key: Project
           Value: linn-api-alexa-smart-home
         - Key: RnDCost
-          # NOT !If [RndCost, …] here, and ONLY here - the two alarms above do use the !If, because they
-          # exist in sys as well and correctly tag 'true' there.
+          # The !If IS redundant here and is kept deliberately. cfn-lint reports the 'true' branch as
+          # unreachable (W1028) and it is right: this alarm carries Condition: IsProduction, so within it
+          # environment is prod and RndCost - defined as "not prod" - cannot be true.
           #
-          # This alarm alone carries Condition: IsProduction, so CloudFormation never creates it unless
-          # environment is prod. Within THIS resource, therefore, environment is prod and RndCost - which
-          # is defined as "not prod" - cannot be anything but false. cfn-lint reaches the same conclusion
-          # by solving the conditions together and reports the 'true' branch as unreachable (W1028).
+          # It stays because a bare 'false' is a copy-paste trap. Every other RnDCost site in the estate
+          # uses this exact !If, so this block is the one a reader would lift into a resource that DOES
+          # exist in sys - and there it would tag sys as non-R&D, silently, with cost allocation quietly
+          # under-attributing and nothing failing. The redundancy costs a warning from a tool this
+          # repository's CI does not run; the constant costs a wrong value nobody would notice.
           #
-          # Nothing here says environment cannot be sys. It obviously can; that is what the other two
-          # alarms tag for.
-          Value: 'false'
+          # So do not "tidy" this to a constant. If cfn-lint is ever added to this repository's pipeline,
+          # suppress W1028 here rather than resolve it.
+          Value: !If [RndCost, 'true', 'false']
 
 Outputs:
   FunctionArn:
