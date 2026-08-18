@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Durable resources for the Alexa Smart Home skill backend - the bucket its deployment packages are uploaded to.
+
+Parameters:
+  environment:
+    Type: String
+    AllowedValues: [sys, prod]
+
+Resources:
+  # Deployment packages only. Separate from the application stack so that the application stack can be
+  # replaced without destroying the artefacts a rollback would need.
+  ResourcesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub linn-api-alexa-smart-home-${environment}-resources
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldPackages
+            Status: Enabled
+            # A year, and the comment above about keeping artefacts a rollback would need is only true
+            # inside it: a rollback to a build older than this has no object left to point at. That is a
+            # deliberate bound rather than an oversight - there is no alias or version to roll back to
+            # either, so recovery past a year means rebuilding from the commit, which git still has.
+            ExpirationInDays: 365
+
+Outputs:
+  ResourcesBucketName:
+    Description: Name of the S3 bucket holding deployment packages
+    Value: !Ref ResourcesBucket
+    Export:
+      Name: !Sub linn-api-alexa-smart-home-${environment}-resources-bucket-name

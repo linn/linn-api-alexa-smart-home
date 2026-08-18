@@ -26,6 +26,10 @@ tools/Cake/*
 tools/Addins/*
 *.lock.json
 *-lock.json
+# ...but this repository's own lockfile MUST be committed. Without it nothing transitive was pinned,
+# and @types/node drifted from 14 to 26 against a TypeScript that could not parse it - which is what
+# killed the build. The rule above is inherited boilerplate; this exception is deliberate.
+!package-lock.json
 launchSettings.json
 *.xproj.user
 *.zip
@@ -36,6 +40,10 @@ launchSettings.json
 __pycache__
 api/index.html
 ,serverless
+
+# Compiled output and the assembled deployment package.
+dist/
+package/
 
 # Agent tool scratch — per-user, never committed (linn/linn-api-development#394)
 .serena/

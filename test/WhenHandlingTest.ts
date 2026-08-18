@@ -1,6 +1,6 @@
 import { handler } from '../src/Handler';
 import { IAlexaRequest, IAlexaResponse } from '../src/models/Alexa';
-import * as nock from 'nock';
+import nock from 'nock';
 
 describe('Handler', () => {
     let alexaRequest : IAlexaRequest<any>;

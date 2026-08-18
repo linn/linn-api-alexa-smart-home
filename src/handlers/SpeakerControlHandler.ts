@@ -5,9 +5,16 @@ import { InvalidDirectiveError, InvalidValueError } from '../facade/ILinnApiFaca
 const DEFAULT_VOLUME_INCREMENT = 3;
 const DEFAULT_VOLUME_DECREMENT = -5;
 
+// EXPLICIT ABOUT ABSENCE, because `value &&` made zero indistinguishable from missing: isNumber(0)
+// returned 0, which is falsy, so "Alexa, set the volume to zero" was refused as INVALID_VALUE for every
+// customer. Zero is inside Alexa's documented 0-100 range.
+//
+// The empty string is still rejected, deliberately. Number("") is 0, not NaN, so a bare !isNaN check
+// would accept "" and set the volume to zero on a payload that named no volume at all - trading the old
+// bug for its mirror image.
 function isNumber(value: string | number): boolean
 {
-    return value && !isNaN(Number(value.toString()));
+    return value !== undefined && value !== null && value !== "" && !isNaN(Number(value));
 }
 
 class SpeakerControlHandler extends AlexaRequestHandler<{}, {}> {

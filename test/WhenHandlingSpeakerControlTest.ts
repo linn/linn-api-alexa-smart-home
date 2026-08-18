@@ -96,6 +96,34 @@ describe('SpeakerControl', () => {
         });
     });
 
+    // THE BOUNDARY THE OLD GUARD COULD NOT SEE. isNumber was `value && !isNaN(...)`, so isNumber(0)
+    // returned 0 - falsy - and "Alexa, set the volume to zero" was refused as INVALID_VALUE for every
+    // customer. Zero is inside Alexa's documented 0-100 range. The existing cases use 11, 20, 10 and -10,
+    // and the only rejection case is a MISSING volume, so nothing here could tell "absent" from "zero".
+    describe('#SetVolume at the boundary', () => {
+        it('accepts zero, which is a legal Alexa volume', async () => {
+            requestedVolume = undefined;
+            await sut.handle(generateRequest<ISpeakerRequestPayload>("SetVolume", { volume: 0 } as ISpeakerRequestPayload));
+            expect(requestedVolume).toBe(0);
+        });
+
+        it('accepts zero for AdjustVolume too', async () => {
+            requestedVolumeSteps = undefined;
+            await sut.handle(generateRequest<ISpeakerRequestPayload>("AdjustVolume", { volume: 0 } as ISpeakerRequestPayload));
+            expect(requestedVolumeSteps).toBe(0);
+        });
+
+        // The mirror image, and the reason the fix is not a bare !isNaN: Number("") is 0, not NaN, so a
+        // looser guard would accept a payload that named no volume and set the device to silent.
+        it('still refuses an empty volume rather than reading it as zero', async () => {
+            let thrown : Error = undefined;
+            try {
+                await sut.handle(generateRequest<ISpeakerRequestPayload>("SetVolume", { volume: "" } as any));
+            } catch (e) { thrown = e; }
+            expect(thrown).toBeInstanceOf(InvalidValueError);
+        });
+    });
+
     describe('#AdjustVolume', () => {
         describe('With valid payload', () => {
             let volumeRequest = 20;

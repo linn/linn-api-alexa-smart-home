@@ -24,7 +24,10 @@ function createHandler(request : IAlexaRequest<any>) : AlexaRequestHandler<any, 
     let Handler = handlers[request.directive.header.namespace];
 
     if (Handler) {
-        let facade = new LinnApiFacade("https://api.linn.co.uk");
+        // Defaulted rather than required: an unset variable would otherwise take the whole skill
+        // down, and the production value is the one this has always used. A sys deployment sets it
+        // to the beta API so it can be exercised without touching customer devices.
+        let facade = new LinnApiFacade(process.env.LINN_API_ROOT || "https://api.linn.co.uk");
         return new Handler(facade);
     } else {
         throw new InvalidDirectiveError(`No handler for ${request.directive.header.namespace}`);;
@@ -46,16 +49,25 @@ function handleError(request : IAlexaRequest<any>, error : Error) : IAlexaRespon
         errorType = "INVALID_VALUE";
     }
 
+    // READ DEFENSIVELY, because this is the last thing standing between a malformed invocation and no
+    // response at all. Alexa always sends `directive`, but a console test invoke or a warm-up ping need
+    // not - and this function used to dereference request.directive.header unconditionally, so for those
+    // it threw INSIDE the catch that called it. The handler's promise then never settled: Alexa received
+    // nothing and the log carried only the throw. An error response missing a correlationToken is
+    // imperfect; producing none at all is the failure this exists to prevent.
+    let directive = request?.directive;
+    let header = directive?.header;
+
     return {
         event: {
             header: {
                 name: "ErrorResponse",
                 namespace: "Alexa",
-                correlationToken: request.directive.header.correlationToken,
-                messageId: request.directive.header.messageId + "-R",
+                correlationToken: header?.correlationToken,
+                messageId: header?.messageId ? header.messageId + "-R" : "unknown-R",
                 payloadVersion: "3"
             },
-            endpoint: request.directive.endpoint,
+            endpoint: directive?.endpoint,
             payload: {
                 type: errorType,
                 message: error.message
