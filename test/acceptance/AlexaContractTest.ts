@@ -42,9 +42,20 @@ describe('Alexa response envelope', () => {
         ["Alexa.PlaybackController", "Play", {}, 'put', `/players/${DEVICE_ID}/play`],
         ["Alexa.Speaker", "SetVolume", { volume: 11 }, 'put', `/players/${DEVICE_ID}/volume?level=11`],
         ["Alexa.InputController", "SelectInput", { input: "Television" }, 'put', `/players/${DEVICE_ID}/source?sourceId=Television`],
+        // Six namespaces are routed and advertised, not five. This row was missing, so deleting
+        // ChannelController from the handler map left all tests green while every "Alexa, change to
+        // pin 3" started answering INVALID_DIRECTIVE.
+        ["Alexa.ChannelController", "ChangeChannel", { channel: { number: "3" } }, 'put', `/players/${DEVICE_ID}/play?pinId=3`],
     ])('%s %s', (namespace, name, payload, method, path) => {
+        // Hoisted so a test can assert it was CONSUMED. Before that assertion existed, every row here
+        // passed for a handler that made no HTTP call at all: deleting the device command from a handler
+        // left the suite green while the customer's "turn on the morning room" silently did nothing -
+        // exactly the failure this file says it prevents.
+        let commandScope : nock.Scope;
+
         beforeEach(() => {
             const scope = nock(API_ROOT);
+            commandScope = scope;
             // Standby is the one that inverts: TurnOn deletes the standby state rather than setting it.
             if (namespace === "Alexa.PowerController") {
                 scope.delete(path).reply(200);
@@ -60,6 +71,11 @@ describe('Alexa response envelope', () => {
             nock(API_ROOT).get('/players/').reply(200, [
                 { id: DEVICE_ID, name: "Morning Room", sources: [{ id: "Television", name: "Television", visible: true }], links: [] }
             ]);
+        });
+
+        it('actually reaches the Linn API', async () => {
+            await invoke(controlDirective(namespace, name, payload));
+            expect(commandScope.isDone()).toBeTruthy();
         });
 
         it('is not an error, and is addressed back to the same endpoint and correlation', async () => {
