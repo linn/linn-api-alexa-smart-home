@@ -26,6 +26,10 @@ Resources:
         Rules:
           - Id: ExpireOldPackages
             Status: Enabled
+            # A year, and the comment above about keeping artefacts a rollback would need is only true
+            # inside it: a rollback to a build older than this has no object left to point at. That is a
+            # deliberate bound rather than an oversight - there is no alias or version to roll back to
+            # either, so recovery past a year means rebuilding from the commit, which git still has.
             ExpirationInDays: 365
 
 Outputs:

@@ -51,7 +51,10 @@ rm -f package/package.json package/package-lock.json
 # Fails loudly rather than uploading an empty archive: a zip of nothing uploads and deploys perfectly
 # and the function then 500s on every directive.
 [ -s alexa-smart-home.zip ] || { echo "deployment package is empty" >&2; exit 1; }
-unzip -l alexa-smart-home.zip | grep -q "dist/Handler.js" || { echo "deployment package has no handler" >&2; exit 1; }
+# ANCHORED. Unanchored, "dist/Handler.js" also matches dist/Handler.js.map - so a future rootDir change
+# nesting the output at dist/src/Handler.js would leave this guard green while the Handler: path in
+# aws/application.yml pointed at nothing, and only the post-deploy smoke test would notice.
+unzip -l alexa-smart-home.zip | grep -qE '(^| )dist/Handler\.js$' || { echo "deployment package has no handler at dist/Handler.js" >&2; exit 1; }
 
 export CODE_KEY=alexa-smart-home-${TRAVIS_BUILD_NUMBER}.zip
 aws s3 cp alexa-smart-home.zip "s3://$RESOURCES_BUCKET/$CODE_KEY"

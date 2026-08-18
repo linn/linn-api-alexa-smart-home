@@ -3,7 +3,7 @@
 # Emit a CycloneDX SBOM for the Lambda deployment package this repository publishes, and upload it to
 # the environment's artefact store.
 #
-# Usage: emit-lambda-sbom.sh <commit-sha> <package-dir>
+# Usage: emit-lambda-sbom.sh <commit-sha> <package-dir> <stage>
 #
 # THE FIRST lambda-CLASS CONSUMER IN THE ESTATE. Every other repository documents a container image,
 # scanned as an image. A Lambda has no registry identity to key on, so its document is keyed by

@@ -60,9 +60,11 @@ Resources:
           LINN_API_ROOT: !Ref linnApiRoot
 
   # Declared rather than left to Lambda to create implicitly. A log group Lambda creates for itself
-  # has NO expiry, and these logs carry the account subject from the bearer token - a pseudonymous
-  # identifier whose retention has to be bounded (ADR-034). Seven days is what the Serverless
-  # deployment set, and is preserved here deliberately.
+  # has NO expiry, and this group needs a bound. NOT because it carries the account subject: an earlier
+  # version of this comment said so, and this very change removed the subject from every log line. The
+  # bound is still right for a different reason - the lines carry device ids, and until the same change
+  # they carried customer-authored device friendly names, which are not pseudonymous at all (ADR-034).
+  # Seven days is what the Serverless deployment set and is preserved deliberately.
   AlexaSmartHomeLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:

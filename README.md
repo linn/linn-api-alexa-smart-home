@@ -63,8 +63,9 @@ account, and stays a manual check.
 
 ## Dependencies
 
-Exactly one production dependency, `jwt-decode`, used only to read the subject out of the bearer token
-for logging. Everything else is a dev dependency and never reaches the deployed package. HTTP goes
+Exactly one production dependency, `jwt-decode`, called for its throw rather than its value: a token that
+is not a JWT is rejected locally instead of being spent on a round trip to the Linn API. The decoded
+subject is discarded and is deliberately not logged. Everything else is a dev dependency and never reaches the deployed package. HTTP goes
 through the runtime's own `fetch`.
 
 **The lockfile is committed and must stay committed.** `.gitignore` inherits a `*-lock.json` rule from

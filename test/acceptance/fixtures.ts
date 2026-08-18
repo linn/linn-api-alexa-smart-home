@@ -6,10 +6,15 @@ import { IAlexaRequest, IAlexaResponse } from '../../src/models/Alexa';
 export const API_ROOT = "https://api.linn.co.uk";
 export const DEVICE_ID = "device0";
 
-// A structurally valid, expired, signature-meaningless RS256 token whose sub is a Linn external
-// account id. Nothing in this service verifies a signature - it forwards the token to the Linn API
-// and decodes it only to log the subject - so a real one would add risk and prove nothing.
-export const TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIvYXV0aC9leHRlcm5hbC1hY2NvdW50cy9lMWUwZGU2MC1kMDk1LTQ2MTQtYTBmZC1lNmI1NjhlMTJmZGMifQ.c2lnbmF0dXJl";
+// A structurally valid, signature-meaningless RS256 token. Nothing in this service verifies a signature;
+// jwtDecode is called for its THROW, so that a token which is not a JWT is rejected here rather than
+// spent on a round trip - the decoded value is discarded and no longer logged anywhere.
+//
+// The sub is an all-zero UUID, deliberately and obviously synthetic. An earlier version of this fixture
+// carried a real-shaped Linn external account id and a comment asserting that it WAS one - which, if it
+// had been lifted from a real token or a log line, would have put a customer identifier in git with
+// unbounded retention: the one store ADR-034 cannot bound after the fact.
+export const TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIvYXV0aC9leHRlcm5hbC1hY2NvdW50cy8wMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDAifQ.c2lnbmF0dXJl";
 
 export const MESSAGE_ID = "34ffca11-b668-49c6-abcb-89789fa70428";
 export const CORRELATION_TOKEN = "correlation-token-abc";
