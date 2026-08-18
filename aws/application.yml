@@ -67,13 +67,27 @@ Resources:
       LogGroupName: !Sub /aws/lambda/linn-api-alexa-smart-home-${stage}-alexaSmartHome
       RetentionInDays: 7
 
-  # Logical id and role name both kept as Serverless generated them, so this updates the existing role
-  # in place. Renaming either would replace it - harmless here, but replacement for no reason is how a
-  # migration acquires risk it did not need.
+  # Logical id and role name both kept as Serverless generated them. That is necessary but was NOT
+  # sufficient: an earlier version of this comment claimed the role therefore updates in place, and a
+  # change set against the live stack said otherwise - see Path below. Renaming either id or name would
+  # replace it too, but the omitted property was the one that actually bit.
   IamRoleLambdaExecution:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub linn-api-alexa-smart-home-${stage}-${AWS::Region}-lambdaRole
+      # DECLARED EXPLICITLY, and this line is what stops the production migration failing.
+      #
+      # `/` is also the default, so omitting it produced the identical role - but CloudFormation diffs
+      # TEMPLATE values, not the resolved state. Serverless set Path explicitly; leaving it out here read
+      # as a change from "/" to unset, and Path requires recreation. With RoleName pinned to the name the
+      # existing role already has, recreation means create-before-delete against an account-unique name:
+      # EntityAlreadyExists, and the whole stack update rolls back.
+      #
+      # Confirmed against the live stack rather than reasoned about: a change set on
+      # linn-api-alexa-smart-home-production reported `Path` with RequiresRecreation: Always, and
+      # `aws iam get-role` reports the deployed Path as "/". Every other resource in that change set is
+      # a non-replacing Modify.
+      Path: /
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
