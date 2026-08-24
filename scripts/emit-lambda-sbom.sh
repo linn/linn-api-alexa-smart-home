@@ -45,11 +45,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck source=./artefacts.sh
 . ./artefacts.sh
 
-# The first linn-api-infrastructure build carrying the Lambda identity contract: a document keyed by
-# the DEPLOYED FUNCTION NAME rather than by repository alone. That segment is what the deployment
-# cross-check joins on, so a document emitted by an earlier tag is filed where nothing looks for it and
-# the function reads as undocumented however complete the document is.
-SBOM_TOOL_IMAGE=linn/sbom-tool:1304
+# shellcheck source=./sbom-pin.sh
+. ./sbom-pin.sh
 SBOM_BUCKET=linn-api-infrastructure-$ENVIRONMENT-sbom-store
 
 # Read from the template rather than restated here. A name written down twice is a name that can
