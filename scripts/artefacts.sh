@@ -6,5 +6,5 @@
 SOURCE_REPO=linn-api-alexa-smart-home
 
 # No default anywhere in the chain: a per-repository regulatory assertion must not be
-# inherited from one nobody gave.
+# inherited from an answer nobody gave.
 SBOM_CRA_SCOPE=true
