@@ -41,12 +41,9 @@ export function controlDirective(namespace : string, name : string, payload : an
     } as IAlexaRequest<any>;
 }
 
-// The Lambda signature is callback-style, which is how Alexa invokes it. Awaiting the callback keeps
-// the tests honest about that contract instead of quietly testing a promise the runtime never sees.
+// The Lambda signature returns a promise, which is how the runtime invokes it: Lambda removed
+// callback-style handlers in Node.js 24, and rejects a handler declaring the callback parameter
+// before it runs any of this code. Awaiting the returned promise is therefore the real contract.
 export function invoke(request : IAlexaRequest<any>) : Promise<IAlexaResponse<any>> {
-    return new Promise((resolve, reject) => {
-        handler(request, { awsRequestId: 'acceptance' } as any, (error?: Error, result?: IAlexaResponse<any>) => {
-            if (error) { reject(error); } else { resolve(result as IAlexaResponse<any>); }
-        });
-    });
+    return handler(request, { awsRequestId: 'acceptance' } as any);
 }

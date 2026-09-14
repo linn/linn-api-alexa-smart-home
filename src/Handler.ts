@@ -3,7 +3,7 @@ import { handleError, createHandler } from './handlers';
 import Logger from './Logger';
 import { jwtDecode } from "jwt-decode";
 
-async function handler(request: IAlexaRequest<any>, context: IAlexaContext, callback: (error? : Error, result? : IAlexaResponse<any>) => void) {
+async function handler(request: IAlexaRequest<any>, context: IAlexaContext): Promise<IAlexaResponse<any>> {
     let logger = new Logger(context);
 
     try {
@@ -28,14 +28,14 @@ async function handler(request: IAlexaRequest<any>, context: IAlexaContext, call
 
         logger.logResponse(response);
 
-        callback(null, response);
+        return response;
     }
     catch (error) {
          let response = handleError(request, error);
 
          logger.logError(response);
 
-         callback(null, response);
+         return response;
     }
 }
 
