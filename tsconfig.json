@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "lib": ["es2023"],
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": [
+      "es2023"
+    ],
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
@@ -12,7 +14,11 @@
     "sourceMap": false,
     "strict": false,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }
