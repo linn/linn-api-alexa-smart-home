@@ -1,7 +1,7 @@
-import { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
+import type { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
 
-interface IAlexaHandler<T,V> {
-    handle(request : IAlexaRequest<T>) : Promise<IAlexaResponse<V>>
+interface IAlexaHandler<T, V> {
+    handle(request: IAlexaRequest<T>): Promise<IAlexaResponse<V>>;
 }
 
 export default IAlexaHandler;

@@ -31,11 +31,11 @@ interface IAlexaRequest<T> {
     directive: RequestDirective<T>;
 }
 
-interface IPayload {}
+type IPayload = {};
 
 interface IErrorPayload extends IPayload {
     type: string;
-    message : string;
+    message: string;
 }
 
 interface IDiscoveryRequestPayload extends IPayload {
@@ -52,12 +52,13 @@ interface IInputRequestPayload extends IPayload {
 
 interface IChannelRequestPayload extends IPayload {
     channel?: {
-        number : string;
+        number: string;
         callSign?: string;
-    },
+    };
     channelMetadata?: {
         name: string;
-    }}
+    };
+}
 
 interface ISpeakerRequestPayload extends IPayload {
     mute?: boolean;
@@ -66,69 +67,69 @@ interface ISpeakerRequestPayload extends IPayload {
 }
 
 interface IAlexaEvent<T> {
-    header: IRequestDirectiveHeader,
-    endpoint?: IRequestDirectiveEndpoint,
-    payload: T
+    header: IRequestDirectiveHeader;
+    endpoint?: IRequestDirectiveEndpoint;
+    payload: T;
 }
 
 interface IAlexaResponseContext {
-    properties: IAlexaResponseContextProperty[],
+    properties: IAlexaResponseContextProperty[];
 }
 
 interface IAlexaResponseContextProperty {
-    namespace: string,
-    name: string,
-    value: any,
-    timeOfSample: string,
-    uncertaintyInMilliseconds: number
+    namespace: string;
+    name: string;
+    value: any;
+    timeOfSample: string;
+    uncertaintyInMilliseconds: number;
 }
 
 interface IAlexaResponse<T> {
-    context?: IAlexaResponseContext,
-    event: IAlexaEvent<T>
+    context?: IAlexaResponseContext;
+    event: IAlexaEvent<T>;
 }
 
 interface IAlexaCapability {
-    interface: string,
-    version: string,
-    type: string,
-    supportedOperations?: string[],
-    inputs?: ISource[],
+    interface: string;
+    version: string;
+    type: string;
+    supportedOperations?: string[];
+    inputs?: ISource[];
     properties?: {
-        supported: { name: string }[]
-    }
+        supported: { name: string }[];
+    };
 }
 
 class AlexaCapability implements IAlexaCapability {
-    interface = "Alexa";
-    type = "AlexaInterface";
-    version = "3";
+    interface = 'Alexa';
+    type = 'AlexaInterface';
+    version = '3';
 }
 
 class AlexaPowerController implements IAlexaCapability {
-    interface = "Alexa.PowerController";
-    type = "AlexaInterface";
-    version = "3";
+    interface = 'Alexa.PowerController';
+    type = 'AlexaInterface';
+    version = '3';
 }
 
 class AlexaSpeaker implements IAlexaCapability {
-    interface = "Alexa.Speaker";
-    type = "AlexaInterface";
-    version = "3";
+    interface = 'Alexa.Speaker';
+    type = 'AlexaInterface';
+    version = '3';
 }
 
 class AlexaPlaybackController implements IAlexaCapability {
-    interface = "Alexa.PlaybackController";
-    type = "AlexaInterface";
-    version = "3";
-    supportedOperations = [ "Play", "Pause", "Stop", "Previous", "Next" ];
+    interface = 'Alexa.PlaybackController';
+    type = 'AlexaInterface';
+    version = '3';
+    supportedOperations = ['Play', 'Pause', 'Stop', 'Previous', 'Next'];
 }
 
 class AlexaChannelController implements IAlexaCapability {
-    interface = "Alexa.ChannelController";
-    type = "AlexaInterface";
-    version = "3";
-    properties = { supported: [ { name: "channel" } ] };
+    interface = 'Alexa.ChannelController';
+    type = 'AlexaInterface';
+    version = '3';
+    properties = { supported: [{ name: 'channel' }] };
 }
 
 interface ISource {
@@ -136,53 +137,56 @@ interface ISource {
 }
 
 class AlexaInputController implements IAlexaCapability {
-    constructor(public inputs : ISource[])
-    {
-    }
-    interface = "Alexa.InputController";
-    type = "AlexaInterface";
-    version = "3";
+    constructor(public inputs: ISource[]) {}
+    interface = 'Alexa.InputController';
+    type = 'AlexaInterface';
+    version = '3';
 }
 
 interface IEndpoint {
-    endpointId: string,
-    friendlyName: string,
-    description: string,
-    manufacturerName: string,
-    displayCategories: string[],
-    cookie: any,
-    capabilities: IAlexaCapability[]
+    endpointId: string;
+    friendlyName: string;
+    description: string;
+    manufacturerName: string;
+    displayCategories: string[];
+    cookie: any;
+    capabilities: IAlexaCapability[];
 }
 
 class SpeakerEndpoint implements IEndpoint {
-    manufacturerName = "Linn Products Ltd.";
-    displayCategories = [ "SPEAKER" ];
+    manufacturerName = 'Linn Products Ltd.';
+    displayCategories = ['SPEAKER'];
     cookie = {};
     capabilities: IAlexaCapability[];
-    constructor(public endpointId: string, public friendlyName: string, public description: string, sources: ISource[]) {
+    constructor(
+        public endpointId: string,
+        public friendlyName: string,
+        public description: string,
+        sources: ISource[]
+    ) {
         this.capabilities = [
             new AlexaCapability(),
             new AlexaPowerController(),
             new AlexaSpeaker(),
             new AlexaPlaybackController(),
             new AlexaInputController(sources),
-            new AlexaChannelController()
+            new AlexaChannelController(),
         ];
     }
 }
 
-export { SpeakerEndpoint };
 export type {
-    IPayload,
-    IEndpoint,
     IAlexaContext,
     IAlexaRequest,
     IAlexaResponse,
     IAlexaResponseContext,
-    IDiscoveryResponsePayload,
-    IDiscoveryRequestPayload,
-    ISpeakerRequestPayload,
-    IInputRequestPayload,
     IChannelRequestPayload,
-    IErrorPayload
+    IDiscoveryRequestPayload,
+    IDiscoveryResponsePayload,
+    IEndpoint,
+    IErrorPayload,
+    IInputRequestPayload,
+    IPayload,
+    ISpeakerRequestPayload,
 };
+export { SpeakerEndpoint };

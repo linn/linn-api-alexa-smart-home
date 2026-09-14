@@ -1,10 +1,10 @@
 // Directive builders for the acceptance suite. These describe what Alexa actually sends, so the
 // suite can be read against Amazon's documentation rather than against our own models.
 import { handler } from '../../src/Handler';
-import { IAlexaRequest, IAlexaResponse } from '../../src/models/Alexa';
+import type { IAlexaRequest, IAlexaResponse } from '../../src/models/Alexa';
 
-export const API_ROOT = "https://api.linn.co.uk";
-export const DEVICE_ID = "device0";
+export const API_ROOT = 'https://api.linn.co.uk';
+export const DEVICE_ID = 'device0';
 
 // A structurally valid, signature-meaningless RS256 token. Nothing in this service verifies a signature;
 // jwtDecode is called for its THROW, so that a token which is not a JWT is rejected here rather than
@@ -14,36 +14,43 @@ export const DEVICE_ID = "device0";
 // carried a real-shaped Linn external account id and a comment asserting that it WAS one - which, if it
 // had been lifted from a real token or a log line, would have put a customer identifier in git with
 // unbounded retention: the one store ADR-034 cannot bound after the fact.
-export const TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIvYXV0aC9leHRlcm5hbC1hY2NvdW50cy8wMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDAifQ.c2lnbmF0dXJl";
+export const TOKEN =
+    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIvYXV0aC9leHRlcm5hbC1hY2NvdW50cy8wMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDAifQ.c2lnbmF0dXJl';
 
-export const MESSAGE_ID = "34ffca11-b668-49c6-abcb-89789fa70428";
-export const CORRELATION_TOKEN = "correlation-token-abc";
+export const MESSAGE_ID = '34ffca11-b668-49c6-abcb-89789fa70428';
+export const CORRELATION_TOKEN = 'correlation-token-abc';
 
 // Discovery carries its token in the payload scope; every control directive carries it in the
 // endpoint scope. Getting that wrong is invisible until a real skill call fails, so the builders
 // keep the two shapes apart rather than letting a test invent either.
-export function discoveryDirective() : IAlexaRequest<any> {
+export function discoveryDirective(): IAlexaRequest<any> {
     return {
         directive: {
-            header: { namespace: "Alexa.Discovery", name: "Discover", payloadVersion: "3", messageId: MESSAGE_ID },
-            payload: { scope: { type: "BearerToken", token: TOKEN } }
-        }
+            header: { namespace: 'Alexa.Discovery', name: 'Discover', payloadVersion: '3', messageId: MESSAGE_ID },
+            payload: { scope: { type: 'BearerToken', token: TOKEN } },
+        },
     } as IAlexaRequest<any>;
 }
 
-export function controlDirective(namespace : string, name : string, payload : any = {}) : IAlexaRequest<any> {
+export function controlDirective(namespace: string, name: string, payload: any = {}): IAlexaRequest<any> {
     return {
         directive: {
-            header: { namespace, name, payloadVersion: "3", messageId: MESSAGE_ID, correlationToken: CORRELATION_TOKEN },
-            endpoint: { endpointId: DEVICE_ID, scope: { type: "BearerToken", token: TOKEN } },
-            payload
-        }
+            header: {
+                namespace,
+                name,
+                payloadVersion: '3',
+                messageId: MESSAGE_ID,
+                correlationToken: CORRELATION_TOKEN,
+            },
+            endpoint: { endpointId: DEVICE_ID, scope: { type: 'BearerToken', token: TOKEN } },
+            payload,
+        },
     } as IAlexaRequest<any>;
 }
 
 // The Lambda signature returns a promise, which is how the runtime invokes it: Lambda removed
 // callback-style handlers in Node.js 24, and rejects a handler declaring the callback parameter
 // before it runs any of this code. Awaiting the returned promise is therefore the real contract.
-export function invoke(request : IAlexaRequest<any>) : Promise<IAlexaResponse<any>> {
+export function invoke(request: IAlexaRequest<any>): Promise<IAlexaResponse<any>> {
     return handler(request, { awsRequestId: 'acceptance' } as any);
 }
