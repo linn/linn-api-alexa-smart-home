@@ -50,3 +50,8 @@ package/
 .chunkhound/
 .chunkhound.json
 .cache/
+
+# Unpacked into the working tree by CI before the build runs. before_script removes it again, so the
+# lint gate does not normally see it - this keeps that true if the removal ever moves or fails.
+/aws-installer/
+/awscliv2.zip

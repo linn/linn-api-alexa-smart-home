@@ -1,23 +1,23 @@
-import { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
-import AlexaRequestHandler from './AlexaRequestHandler';
 import { InvalidDirectiveError } from '../facade/ILinnApiFacade';
+import type { IAlexaRequest, IAlexaResponse } from '../models/Alexa';
+import AlexaRequestHandler from './AlexaRequestHandler';
 
 class PlaybackControlHandler extends AlexaRequestHandler<{}, {}> {
-    async handle(request: IAlexaRequest<{}>) : Promise<IAlexaResponse<{}>> {
-        switch(request.directive.header.name){
-            case "Play":
+    async handle(request: IAlexaRequest<{}>): Promise<IAlexaResponse<{}>> {
+        switch (request.directive.header.name) {
+            case 'Play':
                 await this.facade.play(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
-            case "Pause":
+            case 'Pause':
                 await this.facade.pause(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
-            case "Stop":
+            case 'Stop':
                 await this.facade.stop(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
-            case "Next":
+            case 'Next':
                 await this.facade.next(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
-            case "Previous":
+            case 'Previous':
                 await this.facade.prev(request.directive.endpoint.endpointId, request.directive.endpoint.scope.token);
                 break;
             default:
@@ -27,7 +27,7 @@ class PlaybackControlHandler extends AlexaRequestHandler<{}, {}> {
         return this.generateResponse(request, {});
     }
 
-    token(request: IAlexaRequest<{}>) : string {
+    token(request: IAlexaRequest<{}>): string {
         return request.directive.endpoint.scope.token;
     }
 }
