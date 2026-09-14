@@ -1,5 +1,5 @@
 language: node_js
-node_js: "22"
+node_js: "24"
 dist: noble
 
 # Carried over verbatim from the previous configuration: AWS_DEFAULT_REGION, AWS_ACCESS_KEY_ID and

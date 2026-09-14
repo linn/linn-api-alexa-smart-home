@@ -49,7 +49,7 @@ Resources:
     Properties:
       FunctionName: !Sub linn-api-alexa-smart-home-${stage}-alexaSmartHome
       Description: Alexa Smart Home Skill Backend
-      Runtime: nodejs22.x
+      Runtime: nodejs24.x
       Handler: dist/Handler.handler
       Timeout: 7
       MemorySize: 128
