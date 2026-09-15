@@ -122,7 +122,7 @@ describe('LinnApiFacade', () => {
     describe('Listing Devices', () => {
         let token: string;
         let endpoints: IEndpoint[];
-        let _playersApi: nock.Scope;
+        let playersApi: nock.Scope;
 
         beforeEach(async () => {
             token = 'VALID_TOKEN';
@@ -140,7 +140,7 @@ describe('LinnApiFacade', () => {
                     },
                 ]);
 
-            _playersApi = nock(fakeApiRoot)
+            playersApi = nock(fakeApiRoot)
                 .get('/players/')
                 .reply(200, [
                     {
@@ -169,7 +169,7 @@ describe('LinnApiFacade', () => {
         });
 
         it('Should call /players/ API', () => {
-            expect(deviceApi.isDone()).toBeTruthy();
+            expect(playersApi.isDone()).toBeTruthy();
         });
 
         it('Should provide expected endpoint', () => {
