@@ -151,10 +151,9 @@ Resources:
   # no HTTP status is exposed to anyone, and the log group expires in 7 days.
   #
   # THE METRIC FILTER IS THE PRIMARY SIGNAL, NOT THE ERRORS ALARM, and that is the opposite of the
-  # obvious arrangement. Handler.ts answers every handled failure with callback(null, response) - because
-  # a well-formed Alexa ErrorResponse IS the correct answer - so Lambda counts those invocations as
-  # SUCCESSES. The Errors metric would read zero while 100% of directives failed. Only the log line
-  # distinguishes them.
+  # obvious arrangement. Handler.ts RETURNS a well-formed Alexa ErrorResponse for every handled failure -
+  # because that response IS the correct answer - so Lambda counts those invocations as SUCCESSES. The
+  # Errors metric would read zero while 100% of directives failed. Only the log line distinguishes them.
   #
   # Matched on the message rather than a level: Logger writes every line at "Debug", so the level cannot
   # separate an error from a request. "Response Error Event" is the literal Logger.logError emits.

@@ -11,7 +11,13 @@ describe('The Lambda handler signature', () => {
         expect(handler.length).toBe(2);
     });
 
-    it('Should return a promise rather than signalling through a callback', () => {
-        expect(handler({} as any, { awsRequestId: 'signature' } as any)).toBeInstanceOf(Promise);
+    it('Should answer through its returned promise rather than through a callback', async () => {
+        // Awaited, and the RESOLVED VALUE asserted. `toBeInstanceOf(Promise)` on the call would pass
+        // for the callback-style handler too - that one was also `async`, so it returned a promise
+        // as well, resolving to undefined once it had signalled through the callback. Only the
+        // fulfilled response distinguishes the two contracts.
+        const response = await handler({} as any, { awsRequestId: 'signature' } as any);
+
+        expect(response?.event?.header?.namespace).toBe('Alexa');
     });
 });
