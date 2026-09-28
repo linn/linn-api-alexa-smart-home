@@ -8,6 +8,10 @@ cd ../
 
 npm ci --ignore-scripts
 
+# Before either arm, and before the suites: a formatting or lint violation is the cheapest failure
+# available here, and reporting it after a CloudFormation deploy has run wastes the whole job.
+npm run lint
+
 # The region the skill's Lambda lives in, stated here because serverless.yml used to state it and
 # nothing else does now. It was a `region:` key in that file, so the AWS CLI never needed it from the
 # environment - which is why the first CloudFormation deploy failed with NoRegion despite the

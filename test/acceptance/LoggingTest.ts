@@ -6,11 +6,11 @@
 // logging regression has no failing behaviour to give it away, and by the time anyone reads the log the
 // data is already in it.
 import nock from 'nock';
-import { API_ROOT, DEVICE_ID, TOKEN, controlDirective, discoveryDirective, invoke } from './fixtures';
+import { API_ROOT, controlDirective, DEVICE_ID, discoveryDirective, invoke, TOKEN } from './fixtures';
 
 describe('What reaches the log', () => {
-    let lines : string[];
-    let spy : jest.SpyInstance;
+    let lines: string[];
+    let spy: jest.SpyInstance;
 
     // A name a customer would plausibly type, and the reason friendlyName is not pseudonymous.
     const FRIENDLY_NAME = "Sarah's Bedroom";
@@ -18,7 +18,9 @@ describe('What reaches the log', () => {
     beforeEach(() => {
         nock.cleanAll();
         lines = [];
-        spy = jest.spyOn(console, 'log').mockImplementation((line : any) => { lines.push(String(line)); });
+        spy = jest.spyOn(console, 'log').mockImplementation((line: any) => {
+            lines.push(String(line));
+        });
     });
 
     afterEach(() => {
@@ -26,18 +28,34 @@ describe('What reaches the log', () => {
         nock.cleanAll();
     });
 
-    function logged() : string {
+    function logged(): string {
         return lines.join('\n');
     }
 
     describe('after a discovery', () => {
         beforeEach(async () => {
-            nock(API_ROOT).get('/devices/').reply(200, [
-                { id: DEVICE_ID, serialNumber: "1001", category: "ds", model: "Akurate DSM", name: FRIENDLY_NAME, links: [{ rel: "player", href: `/players/${DEVICE_ID}/` }] }
-            ]);
-            nock(API_ROOT).get('/players/').reply(200, [
-                { id: DEVICE_ID, name: FRIENDLY_NAME, sources: [{ id: "HDMI 1", name: "Television", visible: true }], links: [] }
-            ]);
+            nock(API_ROOT)
+                .get('/devices/')
+                .reply(200, [
+                    {
+                        id: DEVICE_ID,
+                        serialNumber: '1001',
+                        category: 'ds',
+                        model: 'Akurate DSM',
+                        name: FRIENDLY_NAME,
+                        links: [{ rel: 'player', href: `/players/${DEVICE_ID}/` }],
+                    },
+                ]);
+            nock(API_ROOT)
+                .get('/players/')
+                .reply(200, [
+                    {
+                        id: DEVICE_ID,
+                        name: FRIENDLY_NAME,
+                        sources: [{ id: 'HDMI 1', name: 'Television', visible: true }],
+                        links: [],
+                    },
+                ]);
             await invoke(discoveryDirective());
         });
 
@@ -66,9 +84,10 @@ describe('What reaches the log', () => {
             // intercepting library, and the reason an error payload cannot be logged verbatim: the
             // message is whatever the thrower chose, and one of the things it can choose is the
             // Authorization header.
-            nock(API_ROOT).put(`/players/${DEVICE_ID}/volume?level=11`)
+            nock(API_ROOT)
+                .put(`/players/${DEVICE_ID}/volume?level=11`)
                 .replyWithError(new Error(`upstream refused: {"authorization":"Bearer ${TOKEN}"}`));
-            await invoke(controlDirective("Alexa.Speaker", "SetVolume", { volume: 11 }));
+            await invoke(controlDirective('Alexa.Speaker', 'SetVolume', { volume: 11 }));
         });
 
         it('never contains the bearer token, whatever the error message said', () => {

@@ -1,23 +1,22 @@
-import { IEndpoint } from '../models/Alexa';
+import type { IEndpoint } from '../models/Alexa';
 
 interface ILinnApiFacade {
-    list(token : string) : Promise<IEndpoint[]>,
-    setStandby(deviceId : string, value : boolean, token : string) : Promise<void>
-    play(deviceId : string, token : string) : Promise<void>
-    pause(deviceId : string, token : string) : Promise<void>
-    stop(deviceId : string, token : string) : Promise<void>
-    prev(deviceId : string, token : string) : Promise<void>
-    next(deviceId : string, token : string) : Promise<void>
-    setMute(deviceId : string, value : boolean, token : string) : Promise<void>
-    adjustVolume(deviceId : string, steps : number, token : string) : Promise<void>
-    setVolume(deviceId : string, level : number, token : string) : Promise<void>
-    setSource(deviceId : string, sourceId : string, token : string) : Promise<void>
-    invokeDevicePin(deviceId : string, pinId : number, token : string) : Promise<void>
+    list(token: string): Promise<IEndpoint[]>;
+    setStandby(deviceId: string, value: boolean, token: string): Promise<void>;
+    play(deviceId: string, token: string): Promise<void>;
+    pause(deviceId: string, token: string): Promise<void>;
+    stop(deviceId: string, token: string): Promise<void>;
+    prev(deviceId: string, token: string): Promise<void>;
+    next(deviceId: string, token: string): Promise<void>;
+    setMute(deviceId: string, value: boolean, token: string): Promise<void>;
+    adjustVolume(deviceId: string, steps: number, token: string): Promise<void>;
+    setVolume(deviceId: string, level: number, token: string): Promise<void>;
+    setSource(deviceId: string, sourceId: string, token: string): Promise<void>;
+    invokeDevicePin(deviceId: string, pinId: number, token: string): Promise<void>;
 }
 
-class InvalidValueError extends Error
-{
-    constructor(message : string) {
+class InvalidValueError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -25,9 +24,8 @@ class InvalidValueError extends Error
     }
 }
 
-class InvalidDirectiveError extends Error
-{
-    constructor(message : string) {
+class InvalidDirectiveError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -35,9 +33,8 @@ class InvalidDirectiveError extends Error
     }
 }
 
-class InvalidAuthorizationCredentialError extends Error
-{
-    constructor(message : string) {
+class InvalidAuthorizationCredentialError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -45,9 +42,8 @@ class InvalidAuthorizationCredentialError extends Error
     }
 }
 
-class NoSuchEndpointError extends Error
-{
-    constructor(message : string) {
+class NoSuchEndpointError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -55,9 +51,8 @@ class NoSuchEndpointError extends Error
     }
 }
 
-class EndpointUnreachableError extends Error
-{
-    constructor(message : string) {
+class EndpointUnreachableError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -65,14 +60,21 @@ class EndpointUnreachableError extends Error
     }
 }
 
-class EndpointInternalError extends Error
-{
-    constructor(message : string) {
+class EndpointInternalError extends Error {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
         Object.setPrototypeOf(this, EndpointInternalError.prototype);
-    }}
+    }
+}
 
 export default ILinnApiFacade;
-export { InvalidAuthorizationCredentialError, NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidDirectiveError, InvalidValueError };
+export {
+    EndpointInternalError,
+    EndpointUnreachableError,
+    InvalidAuthorizationCredentialError,
+    InvalidDirectiveError,
+    InvalidValueError,
+    NoSuchEndpointError,
+};

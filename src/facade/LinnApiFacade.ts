@@ -1,5 +1,12 @@
-import ILinnApiFacade, { InvalidAuthorizationCredentialError,NoSuchEndpointError, EndpointUnreachableError, EndpointInternalError, InvalidValueError } from "./ILinnApiFacade";
-import { SpeakerEndpoint, IEndpoint } from "../models/Alexa";
+import { type IEndpoint, SpeakerEndpoint } from '../models/Alexa';
+import type ILinnApiFacade from './ILinnApiFacade';
+import {
+    EndpointInternalError,
+    EndpointUnreachableError,
+    InvalidAuthorizationCredentialError,
+    InvalidValueError,
+    NoSuchEndpointError,
+} from './ILinnApiFacade';
 
 // The Linn API is reached with the runtime's own fetch. It replaced the web-request package, which
 // was last published in 2017, pulled Node type definitions of its own into the compile, and did
@@ -33,14 +40,14 @@ interface ILinkResource {
 }
 
 interface IApiResponse {
-    statusCode : number;
-    content : string | null;
+    statusCode: number;
+    content: string | null;
 }
 
-function headers(token : string) {
+function headers(token: string) {
     return {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
     };
 }
 
@@ -67,12 +74,11 @@ const REQUEST_TIMEOUT_MS = 5000;
 // this they reach Handler's catch as an unmapped error and the customer is told INTERNAL_ERROR, which
 // invites them to retry a device that is fine. ENDPOINT_UNREACHABLE is the truthful answer and the one
 // Alexa words usefully.
-async function timedFetch(uri : string, init : RequestInit) : Promise<Response> {
+async function timedFetch(uri: string, init: RequestInit): Promise<Response> {
     try {
         return await fetch(uri, { ...init, redirect: 'manual', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
-    }
-    catch (error) {
-        let name = (error as { name? : string }).name;
+    } catch (error) {
+        const name = (error as { name?: string }).name;
         if (name === 'TimeoutError' || name === 'AbortError') {
             throw new EndpointUnreachableError(`The Linn API did not respond within ${REQUEST_TIMEOUT_MS}ms`);
         }
@@ -80,9 +86,9 @@ async function timedFetch(uri : string, init : RequestInit) : Promise<Response> 
     }
 }
 
-async function apiJson<T>(uri : string, token : string) : Promise<T> {
-    let response = await timedFetch(uri, { headers: headers(token) });
-    let content = await response.text();
+async function apiJson<T>(uri: string, token: string): Promise<T> {
+    const response = await timedFetch(uri, { headers: headers(token) });
+    const content = await response.text();
 
     // Checked before parsing, so that a failure on the listing endpoints maps to the same Alexa error
     // as a failure anywhere else. Without this a 401 while discovering devices reaches Alexa as
@@ -94,44 +100,43 @@ async function apiJson<T>(uri : string, token : string) : Promise<T> {
     return JSON.parse(content) as T;
 }
 
-async function apiRequest(method : string, uri : string, token : string) : Promise<IApiResponse> {
-    let response = await timedFetch(uri, { method, headers: headers(token) });
-    let content = await response.text();
+async function apiRequest(method: string, uri: string, token: string): Promise<IApiResponse> {
+    const response = await timedFetch(uri, { method, headers: headers(token) });
+    const content = await response.text();
     return { statusCode: response.status, content: content.length > 0 ? content : null };
 }
 
 class LinnApiFacade implements ILinnApiFacade {
-    constructor(private apiRoot : string) {
-    }
+    constructor(private apiRoot: string) {}
 
-    async list(token : string): Promise<IEndpoint[]> {
+    async list(token: string): Promise<IEndpoint[]> {
         // Both are awaited together rather than one after the other. They are issued in parallel, so
         // awaiting them in sequence leaves the second promise's rejection UNHANDLED whenever the first
         // one fails - and an unhandled rejection terminates the process on Node 22, turning a plain
         // 401 while discovering devices into a dead invocation instead of an error Alexa can act on.
-        let [devices, players] = await Promise.all([
+        const [devices, players] = await Promise.all([
             apiJson<IAssociatedDeviceResource[]>(`${this.apiRoot}/devices/`, token),
-            apiJson<IPlayerResource[]>(`${this.apiRoot}/players/`, token)
+            apiJson<IPlayerResource[]>(`${this.apiRoot}/players/`, token),
         ]);
 
         return devices
-          .map((d) => {
-            let player = players.find((p) => p.id === d.id);
-            if (player) {
-              let playerSources = player.sources || [];
-              let sources = playerSources
-                .filter((s) => s.visible)
-                .map((s) => {
-                  return { name: s.name };
-                });
-              return new SpeakerEndpoint(d.id, d.name, d.model, sources);
-            }
-            return null;
-          })
-          .filter((x) => x !== null);
+            .map((d) => {
+                const player = players.find((p) => p.id === d.id);
+                if (player) {
+                    const playerSources = player.sources || [];
+                    const sources = playerSources
+                        .filter((s) => s.visible)
+                        .map((s) => {
+                            return { name: s.name };
+                        });
+                    return new SpeakerEndpoint(d.id, d.name, d.model, sources);
+                }
+                return null;
+            })
+            .filter((x) => x !== null);
     }
 
-    async setStandby(deviceId : string, value : boolean, token : string): Promise<void> {
+    async setStandby(deviceId: string, value: boolean, token: string): Promise<void> {
         if (value) {
             await apiPut(`${this.apiRoot}/devices/${encodeURIComponent(deviceId)}/standby`, token);
         } else {
@@ -139,27 +144,27 @@ class LinnApiFacade implements ILinnApiFacade {
         }
     }
 
-    async play(deviceId : string, token : string) : Promise<void> {
+    async play(deviceId: string, token: string): Promise<void> {
         await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/play`, token);
     }
 
-    async pause(deviceId : string, token : string) : Promise<void> {
+    async pause(deviceId: string, token: string): Promise<void> {
         await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/pause`, token);
     }
 
-    async stop(deviceId : string, token : string) : Promise<void> {
+    async stop(deviceId: string, token: string): Promise<void> {
         await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/stop`, token);
     }
 
-    async next(deviceId : string, token : string) : Promise<void> {
+    async next(deviceId: string, token: string): Promise<void> {
         await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/next`, token);
     }
 
-    async prev(deviceId : string, token : string) : Promise<void> {
+    async prev(deviceId: string, token: string): Promise<void> {
         await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/prev`, token);
     }
 
-    async setMute(deviceId : string, value : boolean, token : string) : Promise<void> {
+    async setMute(deviceId: string, value: boolean, token: string): Promise<void> {
         if (value) {
             await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/mute`, token);
         } else {
@@ -167,36 +172,48 @@ class LinnApiFacade implements ILinnApiFacade {
         }
     }
 
-    async adjustVolume(deviceId : string, steps : number, token : string) : Promise<void> {
-        await apiPost(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?steps=${encodeURIComponent(String(steps))}`, token);
+    async adjustVolume(deviceId: string, steps: number, token: string): Promise<void> {
+        await apiPost(
+            `${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?steps=${encodeURIComponent(String(steps))}`,
+            token
+        );
     }
 
-    async setVolume(deviceId : string, level : number, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?level=${encodeURIComponent(String(level))}`, token);
+    async setVolume(deviceId: string, level: number, token: string): Promise<void> {
+        await apiPut(
+            `${this.apiRoot}/players/${encodeURIComponent(deviceId)}/volume?level=${encodeURIComponent(String(level))}`,
+            token
+        );
     }
 
-    async setSource(deviceId : string, sourceId : string, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/source?sourceId=${encodeURIComponent(sourceId)}`, token);
+    async setSource(deviceId: string, sourceId: string, token: string): Promise<void> {
+        await apiPut(
+            `${this.apiRoot}/players/${encodeURIComponent(deviceId)}/source?sourceId=${encodeURIComponent(sourceId)}`,
+            token
+        );
     }
 
-    async invokeDevicePin(deviceId: string, pinId : number, token : string) : Promise<void> {
-        await apiPut(`${this.apiRoot}/players/${encodeURIComponent(deviceId)}/play?pinId=${encodeURIComponent(String(pinId))}`, token);
+    async invokeDevicePin(deviceId: string, pinId: number, token: string): Promise<void> {
+        await apiPut(
+            `${this.apiRoot}/players/${encodeURIComponent(deviceId)}/play?pinId=${encodeURIComponent(String(pinId))}`,
+            token
+        );
     }
 }
 
-async function apiPut(uri : string, token : string) {
+async function apiPut(uri: string, token: string) {
     checkForErrors(await apiRequest('PUT', uri, token));
 }
 
-async function apiDelete(uri : string, token : string) {
+async function apiDelete(uri: string, token: string) {
     checkForErrors(await apiRequest('DELETE', uri, token));
 }
 
-async function apiPost(uri : string, token : string) {
+async function apiPost(uri: string, token: string) {
     checkForErrors(await apiRequest('POST', uri, token));
 }
 
-function checkForErrors(response : IApiResponse) {
+function checkForErrors(response: IApiResponse) {
     // NON-2xx, not >= 400. A 3xx used to pass as success: with redirects no longer followed, a redirect
     // reaches here as a 3xx, and a 302 carrying no Location reached here as one even before that. Either
     // way the command did not arrive at the device, and answering Alexa with a plain `Response` tells the
@@ -207,7 +224,7 @@ function checkForErrors(response : IApiResponse) {
         // a proxy, a load balancer - can answer with HTML or with nothing at all, and letting an
         // unparseable body throw would erase the very status code being mapped, turning every such
         // failure into INTERNAL_ERROR.
-        let body : { error : string } | null = null;
+        let body: { error: string } | null = null;
         if (response.content) {
             try {
                 body = JSON.parse(response.content);
@@ -221,7 +238,10 @@ function checkForErrors(response : IApiResponse) {
             case 403:
                 throw new InvalidAuthorizationCredentialError(generateErrorMessage(body, response.statusCode));
             case 404:
-                if (body?.error === 'ClientPlayerNotFoundException' || body?.error === 'ClientDeviceNotFoundException') {
+                if (
+                    body?.error === 'ClientPlayerNotFoundException' ||
+                    body?.error === 'ClientDeviceNotFoundException'
+                ) {
                     throw new NoSuchEndpointError(generateErrorMessage(body, response.statusCode));
                 } else {
                     throw new InvalidValueError(generateErrorMessage(body, response.statusCode));
@@ -234,10 +254,10 @@ function checkForErrors(response : IApiResponse) {
     }
 }
 
-function generateErrorMessage(body : { error : string }, statusCode : number) : string {
-    return body && body.error 
+function generateErrorMessage(body: { error: string }, statusCode: number): string {
+    return body?.error
         ? `Linn API Error: ${body.error}, Status Code: ${statusCode}`
-        : `Linn API Error: Status Code: ${statusCode}`
+        : `Linn API Error: Status Code: ${statusCode}`;
 }
 
-export default LinnApiFacade
+export default LinnApiFacade;

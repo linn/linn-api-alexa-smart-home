@@ -1,4 +1,4 @@
-import { IAlexaResponse, IAlexaRequest, IAlexaContext } from "./models/Alexa";
+import type { IAlexaContext, IAlexaRequest, IAlexaResponse } from './models/Alexa';
 
 // The account's subject identifier is deliberately absent. It identifies a person, these lines go to
 // CloudWatch, and nothing downstream asks whether a log may carry it - so the only safe place to
@@ -23,23 +23,22 @@ import { IAlexaResponse, IAlexaRequest, IAlexaContext } from "./models/Alexa";
 // What is kept is what identifies the device and the exchange: the header, the endpoint id, and for a
 // discovery the number of endpoints - enough to see "this account discovered nothing" without naming
 // what it owns.
-function toResponseProperties(response : IAlexaResponse<any>) : any
-{
-    let logProperties : any = { header: response.event.header };
+function toResponseProperties(response: IAlexaResponse<any>): any {
+    const logProperties: any = { header: response.event.header };
 
-    let payload = response.event.payload;
+    const payload = response.event.payload;
 
-    if (payload && payload.type) {
-        logProperties["errorType"] = payload.type;
+    if (payload?.type) {
+        logProperties.errorType = payload.type;
     }
 
     if (payload && Array.isArray(payload.endpoints)) {
-        logProperties["endpointCount"] = payload.endpoints.length;
-        logProperties["endpointIds"] = payload.endpoints.map((endpoint : any) => endpoint.endpointId);
+        logProperties.endpointCount = payload.endpoints.length;
+        logProperties.endpointIds = payload.endpoints.map((endpoint: any) => endpoint.endpointId);
     }
 
     if (response.event.endpoint) {
-        logProperties["endPointId"] = response.event.endpoint.endpointId;
+        logProperties.endPointId = response.event.endpoint.endpointId;
     }
 
     return logProperties;
@@ -56,35 +55,35 @@ function toResponseProperties(response : IAlexaResponse<any>) : any
 // the guard rather than by anything that said so. That was one edit away from a live credential in
 // CloudWatch: "log the payload for Discovery too, so we can see what was asked" is a natural change and
 // nothing would have stopped it. Not logging the payload at all removes the question.
-function toRequestProperties(request : IAlexaRequest<any>) : any
-{
-    let logProperties : any = { header: request.directive.header };
+function toRequestProperties(request: IAlexaRequest<any>): any {
+    const logProperties: any = { header: request.directive.header };
 
     if (request.directive.endpoint) {
-        logProperties["endpointId"] = request.directive.endpoint.endpointId;
+        logProperties.endpointId = request.directive.endpoint.endpointId;
     }
 
     return logProperties;
 }
 
-function log(level: string, message: string, awsRequestId : string, properties?: object) {
+function log(level: string, message: string, awsRequestId: string, properties?: object) {
     if (properties) {
-        console.log(`LOG RequestId: ${awsRequestId} Level: ${level} Message: ${message} Properties: ${JSON.stringify(properties)}`);
+        console.log(
+            `LOG RequestId: ${awsRequestId} Level: ${level} Message: ${message} Properties: ${JSON.stringify(properties)}`
+        );
     } else {
         console.log(`LOG RequestId: ${awsRequestId} Level: ${level} Message: ${message}`);
     }
 }
 
 export default class {
-    constructor(private context : IAlexaContext) {
+    constructor(private context: IAlexaContext) {}
+    logRequest(request: IAlexaRequest<any>) {
+        log('Debug', 'Request Directive', this.context.awsRequestId, toRequestProperties(request));
     }
-    logRequest(request : IAlexaRequest<any>) {
-        log("Debug", "Request Directive", this.context.awsRequestId, toRequestProperties(request));
+    logResponse(response: IAlexaResponse<any>) {
+        log('Debug', 'Response Event', this.context.awsRequestId, toResponseProperties(response));
     }
-    logResponse(response : IAlexaResponse<any>) {
-        log("Debug", "Response Event", this.context.awsRequestId, toResponseProperties(response));
-    }
-    logError(response : IAlexaResponse<any>) {
-        log("Debug", "Response Error Event", this.context.awsRequestId, toResponseProperties(response));
+    logError(response: IAlexaResponse<any>) {
+        log('Debug', 'Response Error Event', this.context.awsRequestId, toResponseProperties(response));
     }
 }

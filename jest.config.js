@@ -9,25 +9,28 @@
 //
 // Both projects load test/setup.ts, which blocks any request nock was not told to intercept. Without it
 // an unanticipated request leaves CI for the real production API.
-const ts = ['ts-jest', { tsconfig: { esModuleInterop: true, target: 'es2023', lib: ['es2023'], types: ['node', 'jest'] } }];
+const ts = [
+    'ts-jest',
+    { tsconfig: { esModuleInterop: true, target: 'es2023', lib: ['es2023'], types: ['node', 'jest'] } },
+];
 
 module.exports = {
-  projects: [
-    {
-      displayName: 'unit',
-      testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/*Test.ts'],
-      transform: { '^.+\\.ts$': ts },
-      setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-      clearMocks: true,
-    },
-    {
-      displayName: 'acceptance',
-      testEnvironment: 'node',
-      testMatch: ['<rootDir>/test/acceptance/*Test.ts'],
-      transform: { '^.+\\.ts$': ts },
-      setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-      clearMocks: true,
-    },
-  ],
+    projects: [
+        {
+            displayName: 'unit',
+            testEnvironment: 'node',
+            testMatch: ['<rootDir>/test/*Test.ts'],
+            transform: { '^.+\\.ts$': ts },
+            setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+            clearMocks: true,
+        },
+        {
+            displayName: 'acceptance',
+            testEnvironment: 'node',
+            testMatch: ['<rootDir>/test/acceptance/*Test.ts'],
+            transform: { '^.+\\.ts$': ts },
+            setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+            clearMocks: true,
+        },
+    ],
 };
