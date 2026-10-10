@@ -1,0 +1,17 @@
+# Version updates only. Security updates are switched on in the repository settings, and the cooldown
+# does not apply to them. Nothing in this file merges a pull request.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
