@@ -6,11 +6,12 @@
 // logging regression has no failing behaviour to give it away, and by the time anyone reads the log the
 // data is already in it.
 import nock from 'nock';
+import type { MockInstance } from 'vitest';
 import { API_ROOT, controlDirective, DEVICE_ID, discoveryDirective, invoke, TOKEN } from './fixtures';
 
 describe('What reaches the log', () => {
     let lines: string[];
-    let spy: jest.SpyInstance;
+    let spy: MockInstance;
 
     // A name a customer would plausibly type, and the reason friendlyName is not pseudonymous.
     const FRIENDLY_NAME = "Sarah's Bedroom";
@@ -18,7 +19,7 @@ describe('What reaches the log', () => {
     beforeEach(() => {
         nock.cleanAll();
         lines = [];
-        spy = jest.spyOn(console, 'log').mockImplementation((line: any) => {
+        spy = vi.spyOn(console, 'log').mockImplementation((line: any) => {
             lines.push(String(line));
         });
     });
