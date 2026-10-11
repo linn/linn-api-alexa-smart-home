@@ -12,19 +12,18 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",
-    "@types/jest": "^30.0.0",
     "@types/node": "^24.13.4",
-    "jest": "^30.5.1",
     "nock": "^14.0.0",
-    "ts-jest": "^29.4.12",
-    "typescript": "^6.0.3"
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest --selectProjects unit",
-    "test:acceptance": "jest --selectProjects acceptance",
-    "test:all": "jest",
+    "test": "vitest run --project unit",
+    "test:acceptance": "vitest run --project acceptance",
+    "test:all": "npm run typecheck && vitest run",
     "lint": "biome ci --error-on-warnings .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
   }
 }
