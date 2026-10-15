@@ -10,6 +10,11 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
+    ignore:
+      # @types/node tracks the Lambda runtime's Node major (nodejs24.x), not the latest major, which
+      # types APIs the runtime lacks. Remove with the move to nodejs26.x: linn/linn-api-development#775
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types:
