@@ -80,7 +80,7 @@ describe('LinnApiFacade', () => {
             async () => {
                 nock(fakeApiRoot)
                     .put('/devices/device0/standby')
-                    .delayConnection(REQUEST_TIMEOUT_FLOOR + 2000)
+                    .delay(REQUEST_TIMEOUT_FLOOR + 2000)
                     .reply(200);
 
                 await expect(sut.setStandby('device0', true, 'VALID_TOKEN')).rejects.toBeInstanceOf(
