@@ -11,9 +11,9 @@
     "jwt-decode": "^4.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.5",
+    "@biomejs/biome": "^2.6.7",
     "@types/node": "^24.19.2",
-    "nock": "^15.0.1",
+    "nock": "^15.0.6",
     "typescript": "7.0.2",
     "vitest": "5.1.0"
   },
